@@ -9,14 +9,16 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
+import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
-import javax.annotation.PostConstruct;
+//import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -262,6 +264,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
+    /**
+     * выводит сообщение с контактами и схемой проезда к приюту
+     * @param chatId идентификатор чата, в который выводится информация
+     * @see SendMessage
+     * @see SendPhoto
+     */
     public void sendShelterContacts(long chatId) {
         SendMessage sendMessage = new SendMessage(chatId, //заполнить по факту
                 """
@@ -332,6 +340,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.execute(response);
     }
 
+    /**
+     * вывод кнопок меню "Как взять собаку из приюта" и отправка соответствующих
+     * данных {@link InlineKeyboardButton#callbackData()} при нажатии кнопки
+     * @param chatId идентификатор чата, в котором выводятся кнопки
+     */
     private void takeDogCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Узнать правила знакомства с собакой")
@@ -376,6 +389,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.execute(response);
     }
 
+    /**
+     * вывод в чат кнопок с командами меню и отправка данных при нажатии на кнопку
+     * @param chatId идентификатор чата, в котором выводятся кнопки
+     */
     private void sendReportCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Сфотайте на телефон и пришлите фото питомца.")
@@ -404,6 +421,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.execute(response);
     }
 
+    /**
+     * обработчик команды "Позвать волонтёра"
+     * @param chatId идентификатор чата, в который отсылается сообщение
+     * @param clientId идентификатор клиента, с которым должен связаться волонтёр
+     * @param clientFirstName имя клиента, с которым должен связаться волонтёр
+     * @param clientLastName фамилия клиента, с которым должен связаться волонтёр
+     */
     public void sendCallVolunteerCommand(long chatId, long clientId, String clientFirstName,
                                          String clientLastName) {
         SendMessage sendMessageForClient = new SendMessage(chatId,
@@ -417,6 +441,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.execute(sendMessageForVolunteer);
     }
 
+    /**
+     * Временный метод, который выводит замещающий текст при выборе некоторых
+     * пунктов меню
+     * @param chatId идентификатор чата, в который отсылается сообщение
+     * @see TelegramBot#execute(BaseRequest)
+     */
     public void sendPlainText(long chatId) {
         telegramBot.execute(new SendMessage(chatId, "Заполнить необходимой инфой"));
     }
