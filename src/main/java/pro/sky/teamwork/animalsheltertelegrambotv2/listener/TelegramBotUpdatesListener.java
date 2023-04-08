@@ -38,7 +38,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Константа указывающая ID волонтера
      */
-    private final static long VOLUNTEER_CHAT_ID = 1140085807; //указать id чата волонтеров, сейчас это мой личный ID
+    private final static long VOLUNTEER_CHAT_ID = 1517311315; //указать id чата волонтеров, сейчас это мой личный ID
     public final static BotCommand START_COMMAND = new BotCommand("/start",
             "Основное меню");
     public final static BotCommand SHELTER_INFO_COMMAND = new BotCommand("/shelter_info",
@@ -140,9 +140,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         //заполнить по факту
                         telegramBot.execute(sendMessage);
                     } else if (message.equals(WRITE_CLIENT_CONTACT_COMMAND.command())) {
-                        SendMessage sendMessage = new SendMessage(chatId, "Прошу написать Ваши ФИО и \n" +
-                                "контактный телефон в формате" +
-                                "+7(ХХХ)ХХХХХХХ.");
+                        SendMessage sendMessage = new SendMessage(chatId,
+                                "Прошу написать Ваши ФИО и контактный телефон в формате" +
+                                        "+7(ХХХ)ХХХХХХХ.");
                         telegramBot.execute(sendMessage);
                     } else if (message.equals(CALL_VOLUNTEER_COMMAND.command())) {
                         long clientId = update.message().from().id();
