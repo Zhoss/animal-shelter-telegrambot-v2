@@ -18,7 +18,7 @@ import java.util.Objects;
 public class DailyReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     @Column(nullable = false)
     private String description;
     @Lob
@@ -38,6 +38,8 @@ public class DailyReport {
     private String dogHealth;
     @Column(name = "dog_behavior", nullable = false)
     private String dogBehavior;
+//    @Column(name = "carer_id", nullable = false, insertable = false,updatable = false)
+//    private Long carerId;
     @OneToOne
     @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
