@@ -6,8 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Lob;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -40,7 +41,11 @@ public class DailyReport {
 //    @Column(name = "carer_id", nullable = false, insertable = false,updatable = false)
 //    private Long carerId;
     @OneToOne
+    @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
+    @OneToOne
+    @JoinColumn(name = "dog_id", referencedColumnName = "id")
+    private Dog dog;
 
     public DailyReport() {
 

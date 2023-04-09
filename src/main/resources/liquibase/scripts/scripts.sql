@@ -67,4 +67,33 @@ ALTER TABLE daily_reports
 ALTER TABLE daily_reports
     ADD dog_behavior TEXT NOT NULL;
 
+-- changeset dzhosan:3
+CREATE TABLE dogs
+(
+    id           SERIAL PRIMARY KEY,
+    name         VARCHAR(50) NOT NULL,
+    breed        VARCHAR(50) NOT NULL,
+    coat_color   VARCHAR(50) NOT NULL,
+    age          INTEGER     NOT NULL CHECK (age > 0),
+    features     TEXT,
+    is_taken     BOOLEAN     NOT NULL DEFAULT FALSE,
+    on_probation BOOLEAN     NOT NULL DEFAULT FALSE,
+    carer_id     BIGINT CHECK (carer_id > 0) REFERENCES carers (id),
+    daily_report_id BIGINT CHECK (daily_report_id > 0) REFERENCES daily_reports (id)
+);
 
+CREATE TABLE agreements
+(
+    id              SERIAL PRIMARY KEY,
+    number          BIGINT NOT NULL CHECK (number > 0),
+    conclusion_date DATE   NOT NULL,
+    carer_id        BIGINT CHECK (carer_id > 0) REFERENCES carers (id)
+);
+
+ALTER TABLE carers
+    ADD COLUMN dog_id BIGINT CHECK (dog_id > 0) REFERENCES dogs (id);
+ALTER TABLE carers
+    ADD COLUMN agreement_id BIGINT CHECK (agreement_id > 0) REFERENCES agreements (id);
+ALTER TABLE carers DROP COLUMN age;
+ALTER TABLE carers
+    ADD COLUMN birth_year BIGINT NOT NULL CHECK (birth_year > 1900);

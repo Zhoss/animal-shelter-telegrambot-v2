@@ -6,8 +6,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.JoinColumn;
 
 import java.util.Objects;
+
 @Entity
 @Table(name = "carers")
 public class Carer {
@@ -16,9 +19,18 @@ public class Carer {
     private long id;
     @Column(name = "full_name", nullable = false)
     private String fullName;
-    private int age;
+    @Column(name = "birth_year", nullable = false)
+    private int birthYear;
     @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
+    @OneToOne
+    @JoinColumn(name = "dog_id", referencedColumnName = "id")
+    private Dog dog;
+    @OneToOne
+    @JoinColumn(name = "agreement_id", referencedColumnName = "id")
+    private Agreement agreement;
+    @OneToOne(mappedBy = "carer")
+    private DailyReport dailyReport;
 
     public Carer() {
 
@@ -40,12 +52,12 @@ public class Carer {
         this.fullName = fullName;
     }
 
-    public int getAge() {
-        return age;
+    public int getBirthYear() {
+        return birthYear;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setBirthYear(int birthYear) {
+        this.birthYear = birthYear;
     }
 
     public String getPhoneNumber() {
@@ -74,7 +86,7 @@ public class Carer {
         return "Опекун: " +
                 "id = " + id +
                 ", ФИО = " + fullName +
-                ", возраст = " + age +
+                ", год рождения = " + birthYear +
                 ", контактный телефон = " + phoneNumber;
     }
 }
