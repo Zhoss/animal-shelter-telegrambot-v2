@@ -85,7 +85,7 @@ CREATE TABLE dogs
 CREATE TABLE agreements
 (
     id              SERIAL PRIMARY KEY,
-    number          BIGINT NOT NULL CHECK (number > 0),
+    number          TEXT NOT NULL,
     conclusion_date DATE   NOT NULL,
     carer_id        BIGINT CHECK (carer_id > 0) REFERENCES carers (id)
 );
@@ -97,3 +97,10 @@ ALTER TABLE carers
 ALTER TABLE carers DROP COLUMN age;
 ALTER TABLE carers
     ADD COLUMN birth_year BIGINT NOT NULL CHECK (birth_year > 1900);
+
+CREATE TABLE volunteer_chats
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    telegram_chat_id BIGINT NOT NULL
+)

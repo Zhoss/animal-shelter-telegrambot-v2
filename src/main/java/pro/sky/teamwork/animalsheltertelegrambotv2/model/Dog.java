@@ -111,6 +111,22 @@ public class Dog {
         this.onProbation = onProbation;
     }
 
+    public Carer getCarer() {
+        return carer;
+    }
+
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
+
+    public DailyReport getDailyReport() {
+        return dailyReport;
+    }
+
+    public void setDailyReport(DailyReport dailyReport) {
+        this.dailyReport = dailyReport;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -37,6 +37,7 @@ public class TelegramBotConfiguration {
                 TelegramBotUpdatesListener.CYNOLOGIST_ADVICES_COMMAND,
                 TelegramBotUpdatesListener.CYNOLOGIST_CONTACTS_COMMAND,
                 TelegramBotUpdatesListener.USUAL_REFUSALS_COMMAND,
+                TelegramBotUpdatesListener.SEND_REPORT_MENU_COMMAND,
                 TelegramBotUpdatesListener.SEND_REPORT_COMMAND
         ));
         return bot;

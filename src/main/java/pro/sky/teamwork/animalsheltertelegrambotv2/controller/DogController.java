@@ -16,17 +16,17 @@ public class DogController {
     }
 
     @PostMapping
-    public ResponseEntity<Dog> addDog(@RequestBody DogRecord dogRecord) {
+    public ResponseEntity<DogRecord> addDog(@RequestBody DogRecord dogRecord) {
         return ResponseEntity.ok(this.dogService.addDog(dogRecord));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Dog> findDog(@PathVariable long id) {
+    public ResponseEntity<DogRecord> findDog(@PathVariable long id) {
         return ResponseEntity.ok(this.dogService.findDog(id));
     }
 
     @PutMapping
-    public ResponseEntity<Dog> editDog(@RequestBody DogRecord dogRecord) {
+    public ResponseEntity<DogRecord> editDog(@RequestBody DogRecord dogRecord) {
         return ResponseEntity.ok(this.dogService.editDog(dogRecord));
     }
 

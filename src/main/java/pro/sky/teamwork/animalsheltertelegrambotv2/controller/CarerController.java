@@ -49,7 +49,7 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PostMapping
-    public ResponseEntity<Carer> addCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> addCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.addCarer(carerRecord));
     }
 
@@ -69,7 +69,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Carer> findCarer(@Parameter(description = "ID Опекуна")
+    public ResponseEntity<CarerRecord> findCarer(@Parameter(description = "ID Опекуна")
                                            @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
@@ -100,7 +100,7 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PutMapping
-    public ResponseEntity<Carer> editCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> editCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
 
