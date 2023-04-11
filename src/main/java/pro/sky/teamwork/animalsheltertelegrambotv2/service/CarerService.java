@@ -10,6 +10,8 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CarerService {
@@ -103,5 +105,17 @@ public class CarerService {
 
     public boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber) {
         return this.carerRepository.existsCarerByFullNameAndPhoneNumber(fullName, phoneNumber);
+    }
+
+    public Carer findCarerByPhoneNumber(String phoneNumber) {
+        LOGGER.info("Getting Carer by his phone number");
+        Pattern pattern = Pattern.compile("(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})");
+        Matcher matcher = pattern.matcher(phoneNumber);
+        if (matcher.matches()) {
+            return carerRepository.findCarerByPhoneNumber(phoneNumber);
+        } else {
+            throw new IllegalArgumentException("Введите номер телефона в соответствипе с примером");
+        }
+
     }
 }

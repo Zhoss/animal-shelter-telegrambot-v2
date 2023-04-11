@@ -32,7 +32,7 @@ public class DailyReport {
     private String dogBehavior;
 //    @Column(name = "carer_id", nullable = false, insertable = false,updatable = false)
 //    private Long carerId;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
     @ManyToOne
