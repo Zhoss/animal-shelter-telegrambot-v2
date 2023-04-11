@@ -25,7 +25,7 @@ public class DailyReportController {
 
     private final DailyReportService dailyReportService;
 
-    private static final Logger logger = LoggerFactory.getLogger(DailyReportController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DailyReportController.class);
 
     public DailyReportController(DailyReportService dailyReportService) {
         this.dailyReportService = dailyReportService;
@@ -60,7 +60,7 @@ public class DailyReportController {
             @RequestParam Long carerId,
             @RequestParam LocalDate reportDate
     ) {
-        logger.info("Получение списка отчётов по опекуну и дате");
+        LOGGER.info("Получение списка отчётов по опекуну и дате");
         var dailyReportByCarerAndDate =
                 dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
@@ -70,7 +70,7 @@ public class DailyReportController {
     public ResponseEntity<List<DailyReport>> findDailyReportsByDogId(
             @RequestParam(name = "Идентификатор собаки") Integer dogId
     ) {
-        logger.info("Получение списка отчётов по идентификатору собаки");
+        LOGGER.info("Получение списка отчётов по идентификатору собаки");
         var dailyReportsByDogId =
                 dailyReportService.findDailyReportsByDogId(dogId);
         return ResponseEntity.ok(dailyReportsByDogId);
@@ -84,7 +84,7 @@ public class DailyReportController {
                     "необходим отчёт")
             @RequestParam(name = "Дата отчёта") LocalDate date
     ) {
-        logger.info("Получение отчёта по идентификатору собаки и дате отчёта");
+        LOGGER.info("Получение отчёта по идентификатору собаки и дате отчёта");
         var dailyReportByDogAndReportDate =
                 dailyReportService.findDailyReportByDogAndReportDate(dogId, date);
         return ResponseEntity.ok(dailyReportByDogAndReportDate);
