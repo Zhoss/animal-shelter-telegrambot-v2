@@ -55,6 +55,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Константа указывающая ID чата волонтеров
      */
+    private final static long VOLUNTEER_CHAT_ID = 1517311315; //указать id чата волонтеров, сейчас это мой личный ID
     public final static BotCommand START_COMMAND = new BotCommand("/start",
             "Основное меню");
     public final static BotCommand SHELTER_INFO_COMMAND = new BotCommand("/shelter_info",
