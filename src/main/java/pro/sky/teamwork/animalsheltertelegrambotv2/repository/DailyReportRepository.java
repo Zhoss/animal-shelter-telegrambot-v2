@@ -11,4 +11,10 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, Long> 
     List<DailyReport> findDailyReportByCarerId(Long carerId);
 
     List<DailyReport> findDailyReportByCarerIdAndReportDate(Long carerId, LocalDate reportDate);
+
+    List<DailyReport> findDailyReportsByDogId(long dog_id);
+
+    DailyReport findDailyReportsByDogIdAndReportDateIs(long dog_id, LocalDate reportDate);
+
+
 }

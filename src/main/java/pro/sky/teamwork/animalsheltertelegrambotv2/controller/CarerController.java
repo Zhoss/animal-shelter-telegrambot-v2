@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,8 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 @RequestMapping("/carer")
 public class CarerController {
     private final CarerService carerService;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarerController.class);
 
     public CarerController(CarerService carerService) {
         this.carerService = carerService;
@@ -111,8 +115,18 @@ public class CarerController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping
+    public ResponseEntity<Carer> getCarerByPhoneNumber(
+            @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
+            @RequestParam String phone) {
+        LOGGER.info("Поиск опекуна по номеру телефона");
+        var carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
+        return ResponseEntity.ok(carerByPhoneNumber);
+    }
+
     @ExceptionHandler(value = IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
