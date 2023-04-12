@@ -35,7 +35,8 @@ public class DailyReportService {
     /**
      * Метод получения списка отчётов по опекуну и дате отчёта.
      *
-     * @param carerId
+     * @param carerId    идентификатор опекуна
+     * @param reportDate дата отчета
      * @return возвращает отчет по опекуну (по его id) и дате.
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerIdAndReportDate(Long, LocalDate)
      */
@@ -44,13 +45,28 @@ public class DailyReportService {
         return dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
     }
 
+    /**
+     * Метод получения списка отчётов по опекуну и дате отчёта.
+     *
+     * @param dogId идентификатор собаки
+     * @return возвращает отчет по собаке (по ее id).
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportsByDogId
+     */
     public List<DailyReport> findDailyReportsByDogId(Integer dogId) {
         LOGGER.info("Получение списка отчётов по ID собаки");
         return dailyReportRepository.findDailyReportsByDogId(dogId);
     }
 
-    public DailyReport findDailyReportByDogAndReportDate(Integer dogId,LocalDate date) {
+    /**
+     * Метод получения списка отчётов по опекуну и дате отчёта.
+     *
+     * @param dogId идентификатор собаки
+     * @param date  дата получения отчета
+     * @return возвращает отчет по собаке (по ее id) и дате отчета.
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportsByDogIdAndReportDateIs
+     */
+    public DailyReport findDailyReportByDogAndReportDate(Integer dogId, LocalDate date) {
         LOGGER.info("Получение отчёта по ID собаки на определённую дату");
-        return dailyReportRepository.findDailyReportsByDogIdAndReportDateIs(dogId,date);
+        return dailyReportRepository.findDailyReportsByDogIdAndReportDateIs(dogId, date);
     }
 }

@@ -31,8 +31,6 @@ public class CarerService {
      * <br>//@param setAge <b>Возраст</b>
      *
      * @see CarerRepository
-     *
-     *
      */
     @Transactional
     public CarerRecord addCarer(CarerRecord carerRecord) {
@@ -48,12 +46,12 @@ public class CarerService {
 
     /**
      * Добавление информации по опекуну через телеграмм бота.
-     * @param fullName {@link Carer#setFullName(String)}
-     * @param age {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
+     *
+     * @param fullName    {@link Carer#setFullName(String)}
+     * @param age         {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
      * @param phoneNumber {@link Carer#setPhoneNumber(String)}
      * @return данные по опекуну добавлены
      * @throws IllegalArgumentException Если же поля данных: Имя  и телефон пустые
-     *
      * @see CarerRepository
      */
     @Transactional
@@ -75,6 +73,7 @@ public class CarerService {
 
     /**
      * Поиск информации по опекуну через id. Используется {@link org.springframework.data.jpa.repository.JpaRepository#findById(Object)}
+     *
      * @param id - идентификационный номер опекуна
      * @return найдена информация по опекуну
      * @throws CarerNotFoundException если опекун с таким идентификационным номером (id) не найден
@@ -93,17 +92,25 @@ public class CarerService {
     }
 
     /**
-     * Внесение изменений в информацию <b>опекуна</b>
-     * @param carerRecord класс DTO
-     * @return измененная информация о опекуне.
-     * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
-     * @see CarerRecord
+     * Нахождение опекуна по номеру договора.
+     *
+     * @param agreementNumber номер договора
+     * @return информацию по номеру договора
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#findCarerByAgreementNumber(String)
      */
     @Transactional
     public Carer findCarer(String agreementNumber) {
         return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
     }
 
+    /**
+     * Внесение изменений в информацию <b>опекуна</b>
+     *
+     * @param carerRecord класс DTO
+     * @return измененная информация о опекуне.
+     * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
+     * @see CarerRecord
+     */
     @Transactional
     public CarerRecord editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
@@ -118,10 +125,9 @@ public class CarerService {
 
     /**
      * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     *
      * @param id идентификатор опекуна
-     *
      * @throws IllegalArgumentException При не верном указании id.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)
      */
     @Transactional
@@ -137,6 +143,7 @@ public class CarerService {
 
     /**
      * Метод с булевым значением, проверяющий существует ли полное имя и телефон в репозитории опеукуна.
+     *
      * @param fullName
      * @param phoneNumber
      * @return true/false
@@ -147,6 +154,14 @@ public class CarerService {
         return this.carerRepository.existsCarerByFullNameAndPhoneNumber(fullName, phoneNumber);
     }
 
+    /**
+     * Нахождение опекуна по номеру телефона.
+     *
+     * @param phoneNumber номер телефона
+     * @return информация по опекуну
+     * @throws IllegalArgumentException если не корректно введен номер телефона
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#findCarerByPhoneNumber(String)
+     */
     public Carer findCarerByPhoneNumber(String phoneNumber) {
         LOGGER.info("Getting Carer by his phone number");
         Pattern pattern = Pattern.compile("(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})");
@@ -159,7 +174,13 @@ public class CarerService {
 
     }
 
-    public List<Carer> findAll(){
-        return carerRepository.findAll ();
+    /**
+     * Метод нахождения всей информации в List опекуна
+     *
+     * @return информация по опекуну
+     * @see CarerRepository#findAll()
+     */
+    public List<Carer> findAll() {
+        return carerRepository.findAll();
     }
 }

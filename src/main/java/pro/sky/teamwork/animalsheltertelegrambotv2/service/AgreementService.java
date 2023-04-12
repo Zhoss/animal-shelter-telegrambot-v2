@@ -17,6 +17,12 @@ private final AgreementRepository agreementRepository;
         this.agreementRepository = agreementRepository;
     }
 
+    /**
+     * Метод создания договора.
+     * @param agreement модель класса Agreement
+     * @return создан договор
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.AgreementRepository
+     */
     public Agreement createAgreement(Agreement agreement) {
         return agreementRepository.save(agreement);
     }

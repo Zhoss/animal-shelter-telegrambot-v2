@@ -82,7 +82,22 @@ public class DailyReportController {
                 dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
     }
-
+    @Operation(summary = "Поис ежедневных отчётов по ID собаки",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Найденные ежедневные отчёты по ID собаки",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            array = @ArraySchema(schema = @Schema(
+                                                    implementation = DailyReport[].class))
+                                    )
+                            }
+                    )
+            },
+            tags = "Отчет"
+    )
     @GetMapping("/dog")
     public ResponseEntity<List<DailyReport>> findDailyReportsByDogId(
             @RequestParam(name = "Идентификатор собаки") Integer dogId
@@ -92,7 +107,22 @@ public class DailyReportController {
                 dailyReportService.findDailyReportsByDogId(dogId);
         return ResponseEntity.ok(dailyReportsByDogId);
     }
-
+    @Operation(summary = "Поис ежедневных отчётов по ID собаки и дате",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Найденные ежедневные отчёты по ID собаки и дате",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            array = @ArraySchema(schema = @Schema(
+                                                    implementation = DailyReport[].class))
+                                    )
+                            }
+                    )
+            },
+            tags = "Отчет"
+    )
     @GetMapping("/dogdate")
     public ResponseEntity<DailyReport> getDailyReportByDogIdOnDate(
             @Parameter(description = "Любое целое число, начиная с 0")

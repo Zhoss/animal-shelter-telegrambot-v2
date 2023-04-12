@@ -11,6 +11,12 @@ import java.time.LocalDate;
 
 @Service
 public class ModelMapper {
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param carerRecord
+     * @return информацию внесенную через seagger
+     */
     public Carer mapToCarerEntity(CarerRecord carerRecord) {
         Carer carer = new Carer();
         carer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
@@ -21,6 +27,12 @@ public class ModelMapper {
         return carer;
     }
 
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param carer
+     * @return информацию внесенную через телеграм
+     */
     public CarerRecord mapToCarerRecord(Carer carer) {
         String[] fullName = carer.getFullName().split(" ");
         CarerRecord carerRecord = new CarerRecord();
@@ -33,6 +45,12 @@ public class ModelMapper {
         return carerRecord;
     }
 
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param dogRecord
+     * @return информацию внесенную через seagger
+     */
     public Dog mapToDogEntity(DogRecord dogRecord) {
         Dog dog = new Dog();
         dog.setName(StringUtils.capitalize(dogRecord.getName().toLowerCase()));
@@ -43,6 +61,12 @@ public class ModelMapper {
         return dog;
     }
 
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param dog
+     * @return информацию внесенную через телеграм
+     */
     public DogRecord mapToDogRecord(Dog dog) {
         DogRecord dogRecord = new DogRecord();
         dogRecord.setId(dog.getId());

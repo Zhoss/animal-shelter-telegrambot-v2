@@ -29,7 +29,6 @@ public class DogService {
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return данные по собаке добавлены
      * @throws IllegalArgumentException Если параметр <b>dogRecord</b> пустой.
-     *
      * @see DogRepository
      */
     @Transactional
@@ -50,7 +49,6 @@ public class DogService {
      * @param id через {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository#findById(Object)}
      * @return Найденную информацию по собаке.
      * @throws DogNotFoundException Если нет информации в БД.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      */
 
@@ -72,7 +70,6 @@ public class DogService {
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return Информация по собаке изменена.
      * @throws IllegalArgumentException Если одно из полей {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord} пустое.
-     *
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
     @Transactional
@@ -86,12 +83,12 @@ public class DogService {
             throw new IllegalArgumentException("Требуется добавить собаку");
         }
     }
+
     /**
      * Удаление информации по собаке. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     *
      * @param id идентификатор собаки.
-     *
      * @throws IllegalArgumentException При не верном указании id.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */

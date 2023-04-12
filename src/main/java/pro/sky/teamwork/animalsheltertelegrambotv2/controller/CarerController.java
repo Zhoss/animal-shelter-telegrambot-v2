@@ -127,7 +127,21 @@ public class CarerController {
         this.carerService.deleteCarer(id);
         return ResponseEntity.ok().build();
     }
-
+    @Operation(
+            summary = "Поиск опекуна по номеру телефона",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Carer phone number added",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+                    @ApiResponse(responseCode = "400", description = "Incorrect phone number",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+                    @ApiResponse(responseCode = "404", description = "Carer with current phone number not found",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class))))
+            },
+            tags = "Опекун"
+    )
     @GetMapping
     public ResponseEntity<Carer> getCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")

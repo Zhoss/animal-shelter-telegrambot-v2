@@ -33,6 +33,9 @@ public class Timer {
         this.supportId = supportId;
     }
 
+    /**
+     * Метод отправки напоминания опекуну о том, что необходимо прислать отчет.
+     */
     @Scheduled(cron = "0 0 14 * * ?") // Запуск напоминания ежедневно в 14:00
     public void sendDailyReminder() {
         List<Carer> carers = carerService.findAll();
