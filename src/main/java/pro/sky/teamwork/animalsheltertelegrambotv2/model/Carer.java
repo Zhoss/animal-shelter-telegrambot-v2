@@ -17,6 +17,7 @@ public class Carer {
     private int birthYear;
     @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
+    private long chatId;
     @OneToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
@@ -28,6 +29,14 @@ public class Carer {
 
     public Carer() {
 
+    }
+
+    public long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 
     public long getId() {
@@ -60,6 +69,14 @@ public class Carer {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public DailyReport getDailyReport() {
+        return dailyReport;
+    }
+
+    public void setDailyReport(DailyReport dailyReport) {
+        this.dailyReport = dailyReport;
     }
 
     @Override

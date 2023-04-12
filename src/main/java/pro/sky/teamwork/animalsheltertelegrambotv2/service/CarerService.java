@@ -10,6 +10,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,5 +118,9 @@ public class CarerService {
             throw new IllegalArgumentException("Введите номер телефона в соответствипе с примером");
         }
 
+    }
+
+    public List<Carer> findAll(){
+        return carerRepository.findAll ();
     }
 }

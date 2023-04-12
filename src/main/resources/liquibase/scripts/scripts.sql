@@ -97,3 +97,8 @@ ALTER TABLE carers
 ALTER TABLE carers DROP COLUMN age;
 ALTER TABLE carers
     ADD COLUMN birth_year BIGINT NOT NULL CHECK (birth_year > 1900);
+
+-- changeset sherbakov:1
+
+ALTER TABLE carers
+    ADD COLUMN chat_id BIGINT;
