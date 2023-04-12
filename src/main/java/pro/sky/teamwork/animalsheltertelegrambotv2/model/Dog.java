@@ -1,13 +1,8 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -33,7 +28,7 @@ public class Dog {
     @OneToOne(mappedBy = "dog")
     private Carer carer;
     @OneToMany(mappedBy = "dog")
-    private Set<DailyReport> dailyReports;
+    private List<DailyReport> dailyReports;
 
     public Dog() {
 
@@ -127,12 +122,12 @@ public class Dog {
         this.carer = carer;
     }
 
-    public DailyReport getDailyReport() {
-        return dailyReport;
+    public List<DailyReport> getDailyReports() {
+        return dailyReports;
     }
 
-    public void setDailyReport(DailyReport dailyReport) {
-        this.dailyReport = dailyReport;
+    public void setDailyReports(List<DailyReport> dailyReports) {
+        this.dailyReports = dailyReports;
     }
 
     @Override
@@ -140,24 +135,40 @@ public class Dog {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Dog dog = (Dog) o;
-        return id == dog.id;
+        return getId() == dog.getId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(getId());
     }
 
     @Override
     public String toString() {
-        return "Собака: " +
-                "id = " + id +
-                ", кличка = " + name +
-                ", порода = " + breed +
-                ", окрас = " + coatColor +
-                ", возраст = " + age +
-                ", особые приметы = " + features +
-                ", взята опекуном = " + taken +
-                ", на испытательном сроке = " + onProbation;
+        return "Dog{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", breed='" + breed + '\'' +
+                ", coatColor='" + coatColor + '\'' +
+                ", age=" + age +
+                ", features='" + features + '\'' +
+                ", taken=" + taken +
+                ", onProbation=" + onProbation +
+                ", carer=" + carer +
+                ", dailyReports=" + dailyReports +
+                '}';
     }
+
+    //    @Override
+//    public String toString() {
+//        return "Собака: " +
+//                "id = " + id +
+//                ", кличка = " + name +
+//                ", порода = " + breed +
+//                ", окрас = " + coatColor +
+//                ", возраст = " + age +
+//                ", особые приметы = " + features +
+//                ", взята опекуном = " + taken +
+//                ", на испытательном сроке = " + onProbation;
+//    }
 }
