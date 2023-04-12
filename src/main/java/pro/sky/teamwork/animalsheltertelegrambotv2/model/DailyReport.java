@@ -126,6 +126,22 @@ public class DailyReport {
         this.dogBehavior = dogBehavior;
     }
 
+    public Carer getCarer() {
+        return carer;
+    }
+
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
+
+    public Dog getDog() {
+        return dog;
+    }
+
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

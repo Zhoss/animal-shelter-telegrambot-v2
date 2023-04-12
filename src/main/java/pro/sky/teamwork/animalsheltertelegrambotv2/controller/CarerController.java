@@ -7,11 +7,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestParam;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
@@ -21,8 +28,6 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 @RequestMapping("/carer")
 public class CarerController {
     private final CarerService carerService;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CarerController.class);
 
     public CarerController(CarerService carerService) {
         this.carerService = carerService;
@@ -54,7 +59,7 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PostMapping
-    public ResponseEntity<Carer> addCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> addCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.addCarer(carerRecord));
     }
 
@@ -74,8 +79,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Carer> findCarer(@Parameter(description = " Введите ID Опекуна")
-                                           @PathVariable long id) {
+    public ResponseEntity<CarerRecord> findCarer(@Parameter(description = "ID Опекуна") @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
 
@@ -105,7 +109,7 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PutMapping
-    public ResponseEntity<Carer> editCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> editCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
     @Operation(
@@ -128,14 +132,12 @@ public class CarerController {
     public ResponseEntity<Carer> getCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
             @RequestParam String phone) {
-        LOGGER.info("Поиск опекуна по номеру телефона");
         var carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
         return ResponseEntity.ok(carerByPhoneNumber);
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
-
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }

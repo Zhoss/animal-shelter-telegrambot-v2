@@ -1,12 +1,13 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.configuration;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.DeleteMyCommands;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pro.sky.teamwork.animalsheltertelegrambotv2.listener.TelegramBotUpdatesListener;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
 
 @Configuration
 public class TelegramBotConfiguration {
@@ -19,25 +20,26 @@ public class TelegramBotConfiguration {
         TelegramBot bot = new TelegramBot(token);
         bot.execute(new DeleteMyCommands());
         bot.execute(new SetMyCommands(
-                TelegramBotUpdatesListener.START_COMMAND,
-                TelegramBotUpdatesListener.SHELTER_INFO_COMMAND,
-                TelegramBotUpdatesListener.SHELTER_MAIN_INFO_COMMAND,
-                TelegramBotUpdatesListener.SHELTER_WORK_SCHEDULE_COMMAND,
-                TelegramBotUpdatesListener.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND,
-                TelegramBotUpdatesListener.WRITE_CLIENT_CONTACT_COMMAND,
-                TelegramBotUpdatesListener.CALL_VOLUNTEER_COMMAND,
-                TelegramBotUpdatesListener.BACK_COMMAND,
-                TelegramBotUpdatesListener.TAKE_A_DOG_COMMAND,
-                TelegramBotUpdatesListener.INTRODUCTION_TO_DOG_COMMAND,
-                TelegramBotUpdatesListener.TAKE_DOCUMENTS_LIST_COMMAND,
-                TelegramBotUpdatesListener.TRANSFER_A_DOG_COMMAND,
-                TelegramBotUpdatesListener.ENVIRONMENT_FOR_PUPPY_COMMAND,
-                TelegramBotUpdatesListener.ENVIRONMENT_FOR_DOG_COMMAND,
-                TelegramBotUpdatesListener.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND,
-                TelegramBotUpdatesListener.CYNOLOGIST_ADVICES_COMMAND,
-                TelegramBotUpdatesListener.CYNOLOGIST_CONTACTS_COMMAND,
-                TelegramBotUpdatesListener.USUAL_REFUSALS_COMMAND,
-                TelegramBotUpdatesListener.SEND_REPORT_COMMAND
+                new BotCommand(Command.START_COMMAND.getCommand(), Command.START_COMMAND.getDescription()),
+                new BotCommand(Command.SHELTER_INFO_COMMAND.getCommand(), Command.SHELTER_INFO_COMMAND.getDescription()),
+                new BotCommand(Command.SHELTER_MAIN_INFO_COMMAND.getCommand(), Command.SHELTER_MAIN_INFO_COMMAND.getDescription()),
+                new BotCommand(Command.SHELTER_WORK_SCHEDULE_COMMAND.getCommand(), Command.SHELTER_WORK_SCHEDULE_COMMAND.getDescription()),
+                new BotCommand(Command.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.getCommand(), Command.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.getDescription()),
+                new BotCommand(Command.WRITE_CLIENT_CONTACT_COMMAND.getCommand(), Command.WRITE_CLIENT_CONTACT_COMMAND.getDescription()),
+                new BotCommand(Command.CALL_VOLUNTEER_COMMAND.getCommand(), Command.CALL_VOLUNTEER_COMMAND.getDescription()),
+                new BotCommand(Command.BACK_COMMAND.getCommand(), Command.BACK_COMMAND.getDescription()),
+                new BotCommand(Command.TAKE_A_DOG_COMMAND.getCommand(), Command.TAKE_A_DOG_COMMAND.getDescription()),
+                new BotCommand(Command.INTRODUCTION_TO_DOG_COMMAND.getCommand(), Command.INTRODUCTION_TO_DOG_COMMAND.getDescription()),
+                new BotCommand(Command.TAKE_DOCUMENTS_LIST_COMMAND.getCommand(), Command.TAKE_DOCUMENTS_LIST_COMMAND.getDescription()),
+                new BotCommand(Command.TRANSFER_A_DOG_COMMAND.getCommand(), Command.TRANSFER_A_DOG_COMMAND.getDescription()),
+                new BotCommand(Command.ENVIRONMENT_FOR_PUPPY_COMMAND.getCommand(), Command.ENVIRONMENT_FOR_PUPPY_COMMAND.getDescription()),
+                new BotCommand(Command.ENVIRONMENT_FOR_DOG_COMMAND.getCommand(), Command.ENVIRONMENT_FOR_DOG_COMMAND.getDescription()),
+                new BotCommand(Command.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.getCommand(), Command.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.getDescription()),
+                new BotCommand(Command.CYNOLOGIST_ADVICES_COMMAND.getCommand(), Command.CYNOLOGIST_ADVICES_COMMAND.getDescription()),
+                new BotCommand(Command.CYNOLOGIST_CONTACTS_COMMAND.getCommand(), Command.CYNOLOGIST_CONTACTS_COMMAND.getDescription()),
+                new BotCommand(Command.USUAL_REFUSALS_COMMAND.getCommand(), Command.USUAL_REFUSALS_COMMAND.getDescription()),
+                new BotCommand(Command.SEND_REPORT_MENU_COMMAND.getCommand(), Command.SEND_REPORT_MENU_COMMAND.getDescription()),
+                new BotCommand(Command.SEND_REPORT_COMMAND.getCommand(),Command.SEND_REPORT_COMMAND.getDescription())
         ));
         return bot;
     }

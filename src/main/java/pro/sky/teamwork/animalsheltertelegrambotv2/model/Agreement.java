@@ -17,7 +17,7 @@ public class Agreement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(nullable = false)
-    private long number;
+    private String number;
     @Column(name = "conclusion_date", nullable = false)
     private LocalDate conclusionDate;
     @OneToOne(mappedBy = "agreement")
@@ -35,11 +35,11 @@ public class Agreement {
         this.id = id;
     }
 
-    public long getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(long number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 
@@ -49,6 +49,14 @@ public class Agreement {
 
     public void setConclusionDate(LocalDate conclusionDate) {
         this.conclusionDate = conclusionDate;
+    }
+
+    public Carer getCarer() {
+        return carer;
+    }
+
+    public void setCarer(Carer carer) {
+        this.carer = carer;
     }
 
     @Override

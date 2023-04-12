@@ -7,4 +7,6 @@ public interface CarerRepository extends JpaRepository<Carer, Long> {
     boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber);
 
     public Carer findCarerByPhoneNumber(String phoneNumber);
+
+    Carer findCarerByAgreementNumber(String agreementNumber);
 }

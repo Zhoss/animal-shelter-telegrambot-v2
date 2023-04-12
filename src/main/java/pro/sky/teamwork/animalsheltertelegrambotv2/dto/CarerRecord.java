@@ -18,13 +18,8 @@ public class CarerRecord {
     private int age;
     private String phoneNumber;
 
-    public CarerRecord(long id, String secondName, String firstName, String patronymic, int age, String phoneNumber) {
-        this.id = id;
-        this.secondName = secondName;
-        this.firstName = firstName;
-        this.patronymic = patronymic;
-        this.age = age;
-        this.phoneNumber = phoneNumber;
+    public CarerRecord() {
+
     }
 
     public long getId() {

@@ -9,7 +9,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
@@ -53,7 +61,7 @@ public class DogController {
             }, tags = "Собака"
     )
     @PostMapping
-    public ResponseEntity<Dog> addDog(@RequestBody DogRecord dogRecord) {
+    public ResponseEntity<DogRecord> addDog(@RequestBody DogRecord dogRecord) {
         return ResponseEntity.ok(this.dogService.addDog(dogRecord));
     }
 
@@ -73,8 +81,7 @@ public class DogController {
             tags = "Собака"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Dog> findDog(@Parameter(description = " Введите ID Собаки")
-                                       @PathVariable long id) {
+    public ResponseEntity<DogRecord> findDog(@Parameter(description = " Введите ID Собаки") @PathVariable long id) {
         return ResponseEntity.ok(this.dogService.findDog(id));
     }
 
@@ -104,7 +111,7 @@ public class DogController {
             }, tags = "Собака"
     )
     @PutMapping
-    public ResponseEntity<Dog> editDog(@RequestBody DogRecord dogRecord) {
+    public ResponseEntity<DogRecord> editDog(@RequestBody DogRecord dogRecord) {
         return ResponseEntity.ok(this.dogService.editDog(dogRecord));
     }
 

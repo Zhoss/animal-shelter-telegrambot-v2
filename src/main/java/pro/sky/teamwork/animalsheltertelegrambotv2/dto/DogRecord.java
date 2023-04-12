@@ -19,13 +19,8 @@ public class DogRecord {
     private int age;
     private String features;
 
-    public DogRecord(long id, String name, String breed, String coatColor, int age, String features) {
-        this.id = id;
-        this.name = name;
-        this.breed = breed;
-        this.coatColor = coatColor;
-        this.age = age;
-        this.features = features;
+    public DogRecord() {
+
     }
 
     public long getId() {

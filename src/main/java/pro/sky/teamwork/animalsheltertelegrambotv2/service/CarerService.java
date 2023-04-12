@@ -18,9 +18,11 @@ import java.util.regex.Pattern;
 public class CarerService {
     private final static Logger LOGGER = LoggerFactory.getLogger(CarerService.class);
     private final CarerRepository carerRepository;
+    private final ModelMapper modelMapper;
 
-    public CarerService(CarerRepository carerRepository) {
+    public CarerService(CarerRepository carerRepository, ModelMapper modelMapper) {
         this.carerRepository = carerRepository;
+        this.modelMapper = modelMapper;
     }
 
     /**
@@ -33,16 +35,11 @@ public class CarerService {
      *
      */
     @Transactional
-    public Carer addCarer(CarerRecord carerRecord) {
+    public CarerRecord addCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
-            Carer carer = new Carer();
-            carer.setFullName(carerRecord.getSecondName() + " " +
-                    carerRecord.getFirstName() + " " +
-                    carerRecord.getPatronymic());
-            carer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
-            carer.setPhoneNumber(carerRecord.getPhoneNumber());
             LOGGER.info("Was invoked method for adding carer");
-            return this.carerRepository.save(carer);
+            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
+            return this.modelMapper.mapToCarerRecord(carer);
         } else {
             LOGGER.error("Input object 'carerRecord' is null");
             throw new IllegalArgumentException("Требуется добавить опекуна");
@@ -84,14 +81,15 @@ public class CarerService {
      * @see org.springframework.data.jpa.repository.JpaRepository#findById(Object)
      */
     @Transactional
-    public Carer findCarer(long id) {
+    public CarerRecord findCarer(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for getting carer is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id опекуна");
         }
         LOGGER.info("Was invoked method to find carer");
-        return this.carerRepository.findById(id).
+        Carer carer = this.carerRepository.findById(id).
                 orElseThrow(() -> new CarerNotFoundException("Опекун с id = " + id + " не найден"));
+        return this.modelMapper.mapToCarerRecord(carer);
     }
 
     /**
@@ -102,17 +100,16 @@ public class CarerService {
      * @see CarerRecord
      */
     @Transactional
-    public Carer editCarer(CarerRecord carerRecord) {
+    public Carer findCarer(String agreementNumber) {
+        return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
+    }
+
+    @Transactional
+    public CarerRecord editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
-            Carer carer = new Carer();
-            carer.setFullName(carerRecord.getSecondName() + " " +
-                    carerRecord.getFirstName() + " " +
-                    carerRecord.getPatronymic());
-            carer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
-            carer.setPhoneNumber(carerRecord.getPhoneNumber());
             LOGGER.info("Was invoked method to edit carer");
-            this.carerRepository.save(carer);
-            return carer;
+            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
+            return this.modelMapper.mapToCarerRecord(carer);
         } else {
             LOGGER.error("Input object 'carerRecord' is null");
             throw new IllegalArgumentException("Требуется добавить опекуна");

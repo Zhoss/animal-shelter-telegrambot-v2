@@ -1,6 +1,12 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
+import jakarta.persistence.OneToOne;
 
 import java.util.Objects;
 import java.util.Set;
@@ -111,6 +117,22 @@ public class Dog {
 
     public void setOnProbation(boolean onProbation) {
         this.onProbation = onProbation;
+    }
+
+    public Carer getCarer() {
+        return carer;
+    }
+
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
+
+    public DailyReport getDailyReport() {
+        return dailyReport;
+    }
+
+    public void setDailyReport(DailyReport dailyReport) {
+        this.dailyReport = dailyReport;
     }
 
     @Override

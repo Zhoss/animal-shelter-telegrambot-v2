@@ -16,9 +16,11 @@ import java.util.Collection;
 public class DogService {
     private final static Logger LOGGER = LoggerFactory.getLogger(DogService.class);
     private final DogRepository dogRepository;
+    private final ModelMapper modelMapper;
 
-    public DogService(DogRepository dogRepository) {
+    public DogService(DogRepository dogRepository, ModelMapper modelMapper) {
         this.dogRepository = dogRepository;
+        this.modelMapper = modelMapper;
     }
 
     /**
@@ -31,16 +33,11 @@ public class DogService {
      * @see DogRepository
      */
     @Transactional
-    public Dog addDog(DogRecord dogRecord) {
+    public DogRecord addDog(DogRecord dogRecord) {
         if (dogRecord != null) {
-            Dog dog = new Dog();
-            dog.setName(dogRecord.getName());
-            dog.setBreed(dogRecord.getBreed());
-            dog.setCoatColor(dogRecord.getCoatColor());
-            dog.setAge(dogRecord.getAge());
-            dog.setFeatures(dogRecord.getFeatures());
             LOGGER.info("Was invoked method for adding dog");
-            return this.dogRepository.save(dog);
+            Dog dog = this.dogRepository.save(this.modelMapper.mapToDogEntity(dogRecord));
+            return this.modelMapper.mapToDogRecord(dog);
         } else {
             LOGGER.error("Input object 'dogRecord' is null");
             throw new IllegalArgumentException("Требуется добавить собаку");
@@ -58,14 +55,15 @@ public class DogService {
      */
 
     @Transactional
-    public Dog findDog(long id) {
+    public DogRecord findDog(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for getting dog is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id собаки");
         }
         LOGGER.info("Was invoked method to find dog");
-        return this.dogRepository.findById(id).
+        Dog dog = this.dogRepository.findById(id).
                 orElseThrow(DogNotFoundException::new);
+        return this.modelMapper.mapToDogRecord(dog);
     }
 
     /**
@@ -78,16 +76,11 @@ public class DogService {
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
     @Transactional
-    public Dog editDog(DogRecord dogRecord) {
+    public DogRecord editDog(DogRecord dogRecord) {
         if (dogRecord != null) {
-            Dog dog = new Dog();
-            dog.setName(dogRecord.getName());
-            dog.setBreed(dogRecord.getBreed());
-            dog.setCoatColor(dogRecord.getCoatColor());
-            dog.setAge(dogRecord.getAge());
-            dog.setFeatures(dogRecord.getFeatures());
             LOGGER.info("Was invoked method to edit dog");
-            return this.dogRepository.save(dog);
+            Dog dog = this.dogRepository.save(this.modelMapper.mapToDogEntity(dogRecord));
+            return this.modelMapper.mapToDogRecord(dog);
         } else {
             LOGGER.error("Input object 'dogRecord' is null");
             throw new IllegalArgumentException("Требуется добавить собаку");
