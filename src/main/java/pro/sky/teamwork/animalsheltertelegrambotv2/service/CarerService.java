@@ -10,6 +10,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class CarerService {
@@ -103,5 +104,9 @@ public class CarerService {
 
     public boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber) {
         return this.carerRepository.existsCarerByFullNameAndPhoneNumber(fullName, phoneNumber);
+    }
+
+    public List<Carer> findAll(){
+        return carerRepository.findAll ();
     }
 }
