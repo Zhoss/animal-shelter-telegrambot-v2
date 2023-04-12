@@ -6,8 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
+
+import java.util.Collection;
 
 @Service
 public class DogService {
@@ -108,4 +111,5 @@ public class DogService {
             this.dogRepository.deleteById(id);
         }
     }
+
 }

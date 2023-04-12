@@ -1,15 +1,9 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "carers")
@@ -23,17 +17,26 @@ public class Carer {
     private int birthYear;
     @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
+    private long chatId;
     @OneToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
     @OneToOne
     @JoinColumn(name = "agreement_id", referencedColumnName = "id")
     private Agreement agreement;
-    @OneToOne(mappedBy = "carer")
-    private DailyReport dailyReport;
+    @OneToMany(mappedBy = "carer")
+    private Set<DailyReport> dailyReports;
 
     public Carer() {
 
+    }
+
+    public long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 
     public long getId() {
@@ -66,6 +69,14 @@ public class Carer {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public DailyReport getDailyReport() {
+        return dailyReport;
+    }
+
+    public void setDailyReport(DailyReport dailyReport) {
+        this.dailyReport = dailyReport;
     }
 
     @Override

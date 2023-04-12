@@ -3,6 +3,8 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 import jakarta.persistence.*;
 
 import java.util.Objects;
+import java.util.Set;
+
 @Entity
 @Table(name = "dogs")
 public class Dog {
@@ -24,8 +26,8 @@ public class Dog {
     private boolean onProbation;
     @OneToOne(mappedBy = "dog")
     private Carer carer;
-    @OneToOne(mappedBy = "dog")
-    private DailyReport dailyReport;
+    @OneToMany(mappedBy = "dog")
+    private Set<DailyReport> dailyReports;
 
     public Dog() {
 

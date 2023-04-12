@@ -1,14 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -43,10 +35,10 @@ public class DailyReport {
     private String dogBehavior;
 //    @Column(name = "carer_id", nullable = false, insertable = false,updatable = false)
 //    private Long carerId;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
 
