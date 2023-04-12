@@ -153,7 +153,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 if (update.message() != null && message == null) {
                     if (update.message().sticker() != null ||
                             update.message().video() != null ||
-                            update.message().audio() != null) {
+                            update.message().audio() != null ||
+                            update.message().document() != null) {
                         String errorMessage = "Извините, но я могу работать только с текстом или фото";
                         sendPlainText(chatId, errorMessage);
                     } else if (update.message().chat().type().toString().equals("group")) {
@@ -161,7 +162,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         if (!this.volunteerChatRepository.existsByTelegramChatId(newVolunteerChatId)) {
                             VolunteerChat volunteerChat = new VolunteerChat();
                             volunteerChat.setId(1);
-                            volunteerChat.setName("Чат волонтеров " + LocalDate.now().getMonthValue() + "." + LocalDate.now().getYear());
+                            volunteerChat.setName("Чат волонтеров " + LocalDate.now());
                             volunteerChat.setTelegramChatId(newVolunteerChatId);
                             this.volunteerChatRepository.save(volunteerChat);
                         }
@@ -332,29 +333,29 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         """;
                 sendPlainText(chatId, text);
             }
-        }  else if (matcherAgreementNumber.matches()) {
+        } else if (matcherAgreementNumber.matches()) {
             this.agreementNumber = matcherAgreementNumber.group(0);
             String text = """
-                        Спасибо! Пришлите, пожалуйста, фотографию
-                        животного (1 шт.).
-                        """;
+                    Спасибо! Пришлите, пожалуйста, фотографию
+                    животного (1 шт.).
+                    """;
             sendPlainText(chatId, text);
         } else if (message.startsWith("2)")) {
             String text = """
-                        Спасибо! Информация сохранена.
-                        Пожалуйста, пришлите информация об
-                        общем самочувствии и привыкании к новому месту.
-                        ВАЖНО! Сообщение должно начинаться с "3)"!
-                        """;
+                    Спасибо! Информация сохранена.
+                    Пожалуйста, пришлите информация об
+                    общем самочувствии и привыкании к новому месту.
+                    ВАЖНО! Сообщение должно начинаться с "3)"!
+                    """;
             sendPlainText(chatId, text);
         } else if (message.startsWith("3)")) {
             String text = """
-                        Спасибо! Информация сохранена.
-                        Пожалуйста, пришлите информацию об
-                        изменении в поведении: отказ от старых привычек,
-                        приобретение новых.
-                        ВАЖНО! Сообщение должно начинаться с "4)"!
-                        """;
+                    Спасибо! Информация сохранена.
+                    Пожалуйста, пришлите информацию об
+                    изменении в поведении: отказ от старых привычек,
+                    приобретение новых.
+                    ВАЖНО! Сообщение должно начинаться с "4)"!
+                    """;
             sendPlainText(chatId, text);
         } else if (message.startsWith("4)")) {
             String text = "Спасибо! Отчет за " +
