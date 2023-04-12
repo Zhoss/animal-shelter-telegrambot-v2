@@ -27,6 +27,10 @@ public class Agreement {
 
     }
 
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
+
     public long getId() {
         return id;
     }
@@ -55,9 +59,7 @@ public class Agreement {
         return carer;
     }
 
-    public void setCarer(Carer carer) {
-        this.carer = carer;
-    }
+
 
     @Override
     public boolean equals(Object o) {

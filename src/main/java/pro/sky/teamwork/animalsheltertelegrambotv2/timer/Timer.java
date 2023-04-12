@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ public class Timer {
 
     private long supportId;
 
-    public Timer(CarerService carerService , TelegramBot telegramBot) {
+    public Timer(CarerService carerService, TelegramBot telegramBot) {
         this.carerService = carerService;
         this.telegramBot = telegramBot;
     }
@@ -34,24 +35,28 @@ public class Timer {
 
     @Scheduled(cron = "0 0 14 * * ?") // Запуск напоминания ежедневно в 14:00
     public void sendDailyReminder() {
-        List<Carer> carers = carerService.findAll ();
-        carers.forEach ( carer -> {
-            if (carer.getDailyReport ().getReportDate ().isBefore ( LocalDate.now ().minusDays ( 1 ) )) {
-                sendMessage ( carer.getChatId() , "Вы не отправляли отчет" );
+        List<Carer> carers = carerService.findAll();
+        carers.forEach(carer -> {
+            List<DailyReport> dailyReports = carer.getDailyReports();
+            var dailyReportSize = dailyReports.size();
+            DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
+
+            if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
+                sendMessage(carer.getChatId(), "Вы не отправили отчет за прошлый день.");
             }
-            if (carer.getDailyReport ().getReportDate ().isBefore ( LocalDate.now ().minusDays ( 2 ) )) {
-                sendMessage ( carer.getChatId() , "Вы не отправляли отчет больше двух дней" );
-                sendMessage ( supportId , String.format ( "Усыновитель %s не отправлял отчет более двух дней" ,
-                        carer.getFullName () ) );
+            if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
+//                sendMessage(carer.getChatId(), "Вы не отправляли отчет больше двух дней");
+                sendMessage(supportId, String.format("Опекун %s не отправлял отчет более\n" +
+                                " двух дней",carer.getFullName()));
             }
-        } );
+        });
     }
 
-    private BaseResponse sendMessage(long chatId , String text) {
-        SendMessage request = new SendMessage ( chatId , text )
-                .parseMode ( ParseMode.HTML )
-                .disableWebPagePreview ( true )
-                .disableNotification ( true );
-        return telegramBot.execute ( request );
+    private BaseResponse sendMessage(long chatId, String text) {
+        SendMessage request = new SendMessage(chatId, text)
+                .parseMode(ParseMode.HTML)
+                .disableWebPagePreview(true)
+                .disableNotification(true);
+        return telegramBot.execute(request);
     }
 }
