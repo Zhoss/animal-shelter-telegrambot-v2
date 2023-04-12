@@ -57,8 +57,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Константа указывающая ID чата волонтеров
      */
-
-    //удалить чат волонтеров и все константы с командами -> теперь все в Enum
     private final static long VOLUNTEER_CHAT_ID = 1517311315; //указать id чата волонтеров, сейчас это мой личный ID
     public final static BotCommand START_COMMAND = new BotCommand("/start",
             "Основное меню");
