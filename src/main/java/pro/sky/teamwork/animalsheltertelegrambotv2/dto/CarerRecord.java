@@ -1,5 +1,15 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+/**
+ * Клас описывающий поля для приема информации по <b> опекуну </b>, работает в Swagger.
+ * <br>Параметры:
+ *  * <br> long id
+ *  * <br> String secondName;
+ *  * <br> String firstName;
+ *  * <br> String patronymic;
+ *  * <br> int age;
+ *  * <br> String phoneNumber;
+ */
 public class CarerRecord {
     private long id;
     private String secondName;
