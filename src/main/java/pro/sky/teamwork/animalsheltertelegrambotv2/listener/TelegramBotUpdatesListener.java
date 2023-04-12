@@ -46,8 +46,6 @@ import java.util.regex.Pattern;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 /**
- * @author VitaliyK (commit)
- * <br>
  * Класс описывающий константы и работу класса
  */
 @Service

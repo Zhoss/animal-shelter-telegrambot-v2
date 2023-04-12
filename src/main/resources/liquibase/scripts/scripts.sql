@@ -104,3 +104,7 @@ CREATE TABLE volunteer_chats
     name VARCHAR(50) NOT NULL,
     telegram_chat_id BIGINT NOT NULL
 )
+-- changeset sherbakov:1
+
+ALTER TABLE carers
+    ADD COLUMN chat_id BIGINT;

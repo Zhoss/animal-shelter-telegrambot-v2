@@ -8,8 +8,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "carers")
@@ -23,17 +25,26 @@ public class Carer {
     private int birthYear;
     @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
+    private long chatId;
     @OneToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
     @OneToOne
     @JoinColumn(name = "agreement_id", referencedColumnName = "id")
     private Agreement agreement;
-    @OneToOne(mappedBy = "carer")
-    private DailyReport dailyReport;
+    @OneToMany(mappedBy = "carer")
+    private Set<DailyReport> dailyReports;
 
     public Carer() {
 
+    }
+
+    public long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 
     public long getId() {
@@ -82,6 +93,14 @@ public class Carer {
 
     public void setAgreement(Agreement agreement) {
         this.agreement = agreement;
+    }
+
+    public DailyReport getDailyReport() {
+        return dailyReport;
+    }
+
+    public void setDailyReport(DailyReport dailyReport) {
+        this.dailyReport = dailyReport;
     }
 
     public DailyReport getDailyReport() {

@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestParam;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
 @RestController
@@ -77,8 +79,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<CarerRecord> findCarer(@Parameter(description = "ID Опекуна")
-                                           @PathVariable long id) {
+    public ResponseEntity<CarerRecord> findCarer(@Parameter(description = "ID Опекуна") @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
 
@@ -111,12 +112,28 @@ public class CarerController {
     public ResponseEntity<CarerRecord> editCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
-
+    @Operation(
+            summary = "Удаление записи о опекуне",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Carer information delete",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+            },
+            tags = "Опекун"
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCarer(@Parameter(description = "ID Опекуна")
                                          @PathVariable long id) {
         this.carerService.deleteCarer(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<Carer> getCarerByPhoneNumber(
+            @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
+            @RequestParam String phone) {
+        var carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
+        return ResponseEntity.ok(carerByPhoneNumber);
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

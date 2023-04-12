@@ -1,5 +1,16 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+/**
+ * Клас описывающий поля для приема информации по <b> собаке </b> через Swagger.
+ * <br>Параметры:
+ * <br> long id
+ * <br> String name;
+ * <br> String breed;
+ * <br> String coatColor;
+ * <br> int age;
+ * <br> String features;
+ *
+ */
 public class DogRecord {
     private long id;
     private String name;
