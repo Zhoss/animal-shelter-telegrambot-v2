@@ -52,7 +52,8 @@ public class CarerService {
      * @param age {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
      * @param phoneNumber {@link Carer#setPhoneNumber(String)}
      * @return данные по опекуну добавлены
-     * <br>Если же поля данных: Имя  и телефон пустые, то выдает ошибку {@link IllegalArgumentException}
+     * @throws IllegalArgumentException Если же поля данных: Имя  и телефон пустые
+     *
      * @see CarerRepository
      */
     @Transactional
@@ -74,9 +75,9 @@ public class CarerService {
 
     /**
      * Поиск информации по опекуну через id. Используется {@link org.springframework.data.jpa.repository.JpaRepository#findById(Object)}
-     * @param id
+     * @param id - идентификационный номер опекуна
      * @return найдена информация по опекуну
-     *
+     * @throws CarerNotFoundException если опекун с таким идентификационным номером (id) не найден
      * @see org.springframework.data.jpa.repository.JpaRepository#findById(Object)
      */
     @Transactional
@@ -92,9 +93,9 @@ public class CarerService {
 
     /**
      * Внесение изменений в информацию <b>опекуна</b>
-     * @param carerRecord
+     * @param carerRecord класс DTO
      * @return измененная информация о опекуне.
-     *
+     * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
      */
     @Transactional
@@ -117,9 +118,10 @@ public class CarerService {
 
     /**
      * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
-     * @param id
+     * @param id идентификатор опекуна
      *
-     * При не верном указании id, выдается ошибка через {@link IllegalArgumentException}
+     * @throws IllegalArgumentException При не верном указании id.
+     *
      * @see org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)
      */
     @Transactional

@@ -23,7 +23,8 @@ public class DogService {
      *
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return данные по собаке добавлены
-     * <br>Если параметр <b>dogRecord</b> пустой, то выдает ошибку {@link IllegalArgumentException}
+     * @throws IllegalArgumentException Если параметр <b>dogRecord</b> пустой.
+     *
      * @see DogRepository
      */
     @Transactional
@@ -48,7 +49,8 @@ public class DogService {
      *
      * @param id через {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository#findById(Object)}
      * @return Найденную информацию по собаке.
-     * <br>Если нет информации в БД, то выдает ошибку {@link pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException}
+     * @throws DogNotFoundException Если нет информации в БД.
+     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      */
 
@@ -68,7 +70,8 @@ public class DogService {
      *
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return Информация по собаке изменена.
-     * <br> Если одно из полей {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord} пустое, то выдается ошибка {@link IllegalArgumentException}
+     * @throws IllegalArgumentException Если одно из полей {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord} пустое.
+     *
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
     @Transactional
@@ -89,9 +92,10 @@ public class DogService {
     }
     /**
      * Удаление информации по собаке. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
-     * @param id
+     * @param id идентификатор собаки.
      *
-     * При не верном указании id, выдается ошибка через {@link IllegalArgumentException}
+     * @throws IllegalArgumentException При не верном указании id.
+     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
