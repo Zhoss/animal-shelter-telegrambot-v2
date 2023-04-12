@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
 @RestController
@@ -73,7 +74,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Carer> findCarer(@Parameter(description = "ID Опекуна")
+    public ResponseEntity<Carer> findCarer(@Parameter(description = " Введите ID Опекуна")
                                            @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
@@ -107,7 +108,15 @@ public class CarerController {
     public ResponseEntity<Carer> editCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
-
+    @Operation(
+            summary = "Удаление записи о опекуне",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Carer information delete",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+            },
+            tags = "Опекун"
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCarer(@Parameter(description = "ID Опекуна")
                                          @PathVariable long id) {

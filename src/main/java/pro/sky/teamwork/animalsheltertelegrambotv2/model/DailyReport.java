@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * Класс описывающий логику и поля DailyReport
+ */
 @Entity
 @Table(name = "daily_reports")
 public class DailyReport {

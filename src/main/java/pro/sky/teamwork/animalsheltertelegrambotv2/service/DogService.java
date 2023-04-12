@@ -21,6 +21,15 @@ public class DogService {
         this.dogRepository = dogRepository;
     }
 
+    /**
+     * Добавление информации о собаке в Swagger
+     *
+     * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
+     * @return данные по собаке добавлены
+     * @throws IllegalArgumentException Если параметр <b>dogRecord</b> пустой.
+     *
+     * @see DogRepository
+     */
     @Transactional
     public Dog addDog(DogRecord dogRecord) {
         if (dogRecord != null) {
@@ -38,6 +47,16 @@ public class DogService {
         }
     }
 
+    /**
+     * Поиск информации по собаке.
+     *
+     * @param id через {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository#findById(Object)}
+     * @return Найденную информацию по собаке.
+     * @throws DogNotFoundException Если нет информации в БД.
+     *
+     * @see org.springframework.data.jpa.repository.JpaRepository
+     */
+
     @Transactional
     public Dog findDog(long id) {
         if (id < 0) {
@@ -49,6 +68,15 @@ public class DogService {
                 orElseThrow(DogNotFoundException::new);
     }
 
+    /**
+     * Внесение изменений в информацию о собаке.
+     *
+     * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
+     * @return Информация по собаке изменена.
+     * @throws IllegalArgumentException Если одно из полей {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord} пустое.
+     *
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
+     */
     @Transactional
     public Dog editDog(DogRecord dogRecord) {
         if (dogRecord != null) {
@@ -65,7 +93,15 @@ public class DogService {
             throw new IllegalArgumentException("Требуется добавить собаку");
         }
     }
-
+    /**
+     * Удаление информации по собаке. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     * @param id идентификатор собаки.
+     *
+     * @throws IllegalArgumentException При не верном указании id.
+     *
+     * @see org.springframework.data.jpa.repository.JpaRepository
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
+     */
     public void deleteDog(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for deleting dog is incorrect");

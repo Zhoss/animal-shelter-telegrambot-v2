@@ -29,6 +29,8 @@ public class CarerService {
      * <br>//@param setAge <b>Возраст</b>
      *
      * @see CarerRepository
+     *
+     *
      */
     @Transactional
     public Carer addCarer(CarerRecord carerRecord) {
@@ -47,6 +49,16 @@ public class CarerService {
         }
     }
 
+    /**
+     * Добавление информации по опекуну через телеграмм бота.
+     * @param fullName {@link Carer#setFullName(String)}
+     * @param age {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
+     * @param phoneNumber {@link Carer#setPhoneNumber(String)}
+     * @return данные по опекуну добавлены
+     * @throws IllegalArgumentException Если же поля данных: Имя  и телефон пустые
+     *
+     * @see CarerRepository
+     */
     @Transactional
     public Carer addCarer(String fullName, int age, String phoneNumber) {
         if (!fullName.isEmpty() && !fullName.isBlank() &&
@@ -64,6 +76,13 @@ public class CarerService {
         }
     }
 
+    /**
+     * Поиск информации по опекуну через id. Используется {@link org.springframework.data.jpa.repository.JpaRepository#findById(Object)}
+     * @param id - идентификационный номер опекуна
+     * @return найдена информация по опекуну
+     * @throws CarerNotFoundException если опекун с таким идентификационным номером (id) не найден
+     * @see org.springframework.data.jpa.repository.JpaRepository#findById(Object)
+     */
     @Transactional
     public Carer findCarer(long id) {
         if (id < 0) {
@@ -75,6 +94,13 @@ public class CarerService {
                 orElseThrow(() -> new CarerNotFoundException("Опекун с id = " + id + " не найден"));
     }
 
+    /**
+     * Внесение изменений в информацию <b>опекуна</b>
+     * @param carerRecord класс DTO
+     * @return измененная информация о опекуне.
+     * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
+     * @see CarerRecord
+     */
     @Transactional
     public Carer editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
@@ -93,6 +119,14 @@ public class CarerService {
         }
     }
 
+    /**
+     * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     * @param id идентификатор опекуна
+     *
+     * @throws IllegalArgumentException При не верном указании id.
+     *
+     * @see org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)
+     */
     @Transactional
     public void deleteCarer(long id) {
         if (id < 0) {
@@ -104,6 +138,14 @@ public class CarerService {
         }
     }
 
+    /**
+     * Метод с булевым значением, проверяющий существует ли полное имя и телефон в репозитории опеукуна.
+     * @param fullName
+     * @param phoneNumber
+     * @return true/false
+     * <br>
+     * {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#existsCarerByFullNameAndPhoneNumber(String, String)}
+     */
     public boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber) {
         return this.carerRepository.existsCarerByFullNameAndPhoneNumber(fullName, phoneNumber);
     }

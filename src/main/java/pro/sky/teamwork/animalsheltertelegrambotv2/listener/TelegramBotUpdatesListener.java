@@ -26,8 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author VitaliyK (commit)
- * <br>
  * Класс описывающий константы и работу класса
  */
 @Service

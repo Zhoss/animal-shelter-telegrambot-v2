@@ -16,15 +16,29 @@ public class DailyReportService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DailyReportService.class);
 
-    public DailyReportService (DailyReportRepository dailyReportRepository) {
+    public DailyReportService(DailyReportRepository dailyReportRepository) {
         this.dailyReportRepository = dailyReportRepository;
     }
 
+    /**
+     * Метод получения списка отчётов по опекуну.
+     *
+     * @param carerId
+     * @return возвращает отчет по опекуну (по его id)
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerId(Long)
+     */
     public List<DailyReport> findDailyReportByCarer(Long carerId) {
         LOGGER.info("Получение списка отчётов по опекуну");
         return dailyReportRepository.findDailyReportByCarerId(carerId);
     }
 
+    /**
+     * Метод получения списка отчётов по опекуну и дате отчёта.
+     *
+     * @param carerId
+     * @return возвращает отчет по опекуну (по его id) и дате.
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerIdAndReportDate(Long, LocalDate)
+     */
     public List<DailyReport> findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
         LOGGER.info("Получение списка отчётов по опекуну и дате отчёта");
         return dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
