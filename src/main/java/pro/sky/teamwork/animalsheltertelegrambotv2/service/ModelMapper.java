@@ -1,5 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
@@ -12,9 +13,9 @@ import java.time.LocalDate;
 public class ModelMapper {
     public Carer mapToCarerEntity(CarerRecord carerRecord) {
         Carer carer = new Carer();
-        carer.setFullName(carerRecord.getSecondName() + " " +
-                carerRecord.getFirstName() + " " +
-                carerRecord.getPatronymic());
+        carer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
+                StringUtils.capitalize(carerRecord.getFirstName().toLowerCase()) + " " +
+                StringUtils.capitalize(carerRecord.getPatronymic().toLowerCase()));
         carer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
         carer.setPhoneNumber(carerRecord.getPhoneNumber());
         return carer;
@@ -28,13 +29,13 @@ public class ModelMapper {
         carerRecord.setFirstName(fullName[1]);
         carerRecord.setPatronymic(fullName[2]);
         carerRecord.setAge(LocalDate.now().getYear() - carer.getBirthYear());
-        carer.setPhoneNumber(carer.getPhoneNumber());
+        carerRecord.setPhoneNumber(carer.getPhoneNumber());
         return carerRecord;
     }
 
     public Dog mapToDogEntity(DogRecord dogRecord) {
         Dog dog = new Dog();
-        dog.setName(dogRecord.getName());
+        dog.setName(StringUtils.capitalize(dogRecord.getName().toLowerCase()));
         dog.setBreed(dogRecord.getBreed());
         dog.setCoatColor(dogRecord.getCoatColor());
         dog.setAge(dogRecord.getAge());

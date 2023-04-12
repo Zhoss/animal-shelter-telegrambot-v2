@@ -70,6 +70,7 @@ public class CarerService {
         return this.modelMapper.mapToCarerRecord(carer);
     }
 
+    @Transactional
     public Carer findCarer(String agreementNumber) {
         return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
     }

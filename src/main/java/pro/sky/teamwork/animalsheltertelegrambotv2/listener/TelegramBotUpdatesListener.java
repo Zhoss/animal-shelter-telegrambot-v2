@@ -16,11 +16,13 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.response.GetFileResponse;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.VolunteerChat;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
@@ -55,6 +57,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Константа указывающая ID чата волонтеров
      */
+
+    //удалить чат волонтеров и все константы с командами -> теперь все в Enum
     private final static long VOLUNTEER_CHAT_ID = 1517311315; //указать id чата волонтеров, сейчас это мой личный ID
     public final static BotCommand START_COMMAND = new BotCommand("/start",
             "Основное меню");
@@ -126,7 +130,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         try {
             updates.forEach(update -> {
                 LOGGER.info("Processing update: {}", update);
-                long volunteerChatId = this.volunteerChatRepository.findById(1L).orElse(new VolunteerChat()).getTelegramChatId();
+                long volunteerChatId = this.volunteerChatRepository.findById(1L)
+                        .orElse(new VolunteerChat()).getTelegramChatId();
                 String message = "";
                 long chatId = 0L;
                 long clientId = 0L;
@@ -192,7 +197,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         Carer carer = this.carerService.findCarer(this.agreementNumber);
 
-        Path filePath = Path.of(photosDir + "/" + carer.getFullName(), LocalDate.now() + "." + getExtensions(Objects.requireNonNull(fullPath)));
+        Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
+                LocalDate.now() + "." + getExtensions(Objects.requireNonNull(fullPath)));
         try {
             URL url = new URL(fullPath);
             Files.createDirectories(filePath.getParent());
@@ -218,8 +224,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     //метод по обработке только команд (начинающихся с "/")
-    private void handleCommand(String command, long chatId, long clientId, String clientFirstName, String clientLastName, long volunteerChatId) {
-        if (command.equals(START_COMMAND.command())) {
+    private void handleCommand(String command,
+                               long chatId,
+                               long clientId,
+                               String clientFirstName,
+                               String clientLastName,
+                               long volunteerChatId) {
+        if (command.equals(Command.START_COMMAND.getCommand())) {
             String text = """
                     Добрый день! Меня зовут AnimalShelterBot. Я отвечаю на
                     популярные вопросы о том, что нужно знать и уметь,
@@ -227,18 +238,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     """;
             sendPlainText(chatId, text);
             startCommandMenu(chatId);
-        } else if (command.equals(SHELTER_INFO_COMMAND.command())) {
+        } else if (command.equals(Command.SHELTER_INFO_COMMAND.getCommand())) {
             shelterInfoCommandMenu(chatId);
-        } else if (command.equals(TAKE_A_DOG_COMMAND.command())) {
+        } else if (command.equals(Command.TAKE_A_DOG_COMMAND.getCommand())) {
             takeDogCommandMenu(chatId);
-        } else if (command.equals(SEND_REPORT_MENU_COMMAND.command())) {
+        } else if (command.equals(Command.SEND_REPORT_MENU_COMMAND.getCommand())) {
             sendReportCommandMenu(chatId);
-        } else if (command.equals(CALL_VOLUNTEER_COMMAND.command())) {
+        } else if (command.equals(Command.CALL_VOLUNTEER_COMMAND.getCommand())) {
             sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
-        } else if (command.equals(SHELTER_MAIN_INFO_COMMAND.command())) {
+        } else if (command.equals(Command.SHELTER_MAIN_INFO_COMMAND.getCommand())) {
             String text = "Основная информация о приюте"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(SHELTER_WORK_SCHEDULE_COMMAND.command())) {
+        } else if (command.equals(Command.SHELTER_WORK_SCHEDULE_COMMAND.getCommand())) {
             String text = """
                     Расписание работы приюта:
                     номер телефона:
@@ -248,47 +259,47 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             SendPhoto sendPhoto = new SendPhoto(chatId,
                     new File("src/redaktirovat-kartu.png"));
             telegramBot.execute(sendPhoto);
-        } else if (command.equals(SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.command())) {
+        } else if (command.equals(Command.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.getCommand())) {
             String text = "Общие рекомендации о технике безопасности на территории приюта"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(WRITE_CLIENT_CONTACT_COMMAND.command())) {
+        } else if (command.equals(Command.WRITE_CLIENT_CONTACT_COMMAND.getCommand())) {
             String text = """
                     Прошу написать Ваши Фамилию Имя Отчество
                     (напр., Иванов Иван Иванович)
                     и номер телефона в формате +7(ХХХ)ХХХХХХХ
                     """;
             sendPlainText(chatId, text);
-        } else if (command.equals(BACK_COMMAND.command())) {
+        } else if (command.equals(Command.BACK_COMMAND.getCommand())) {
             startCommandMenu(chatId);
-        } else if (command.equals(INTRODUCTION_TO_DOG_COMMAND.command())) {
+        } else if (command.equals(Command.INTRODUCTION_TO_DOG_COMMAND.getCommand())) {
             String text = "Правила знакомства с собакой до того, как можно забрать ее из приюта"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(TAKE_DOCUMENTS_LIST_COMMAND.command())) {
+        } else if (command.equals(Command.TAKE_DOCUMENTS_LIST_COMMAND.getCommand())) {
             String text = "Список документов, необходимых для того, чтобы взять собаку из приюта"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(TRANSFER_A_DOG_COMMAND.command())) {
+        } else if (command.equals(Command.TRANSFER_A_DOG_COMMAND.getCommand())) {
             String text = "Список рекомендаций по транспортировке животного"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(ENVIRONMENT_FOR_PUPPY_COMMAND.command())) {
+        } else if (command.equals(Command.ENVIRONMENT_FOR_PUPPY_COMMAND.getCommand())) {
             String text = "Список рекомендаций по обустройству дома для щенка"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(ENVIRONMENT_FOR_DOG_COMMAND.command())) {
+        } else if (command.equals(Command.ENVIRONMENT_FOR_DOG_COMMAND.getCommand())) {
             String text = "Список рекомендаций по обустройству дома для взрослой собаки"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.command())) {
-            String text = "Список рекомендаций по обустройству дома для собаки с\n" +
-                    "ограниченными возможностями (зрение, передвижение)"; //требуемая информация
+        } else if (command.equals(Command.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.getCommand())) {
+            String text = "Список рекомендаций по обустройству дома для собаки с ограниченными " +
+                    "возможностями (зрение, передвижение)"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(CYNOLOGIST_ADVICES_COMMAND.command())) {
+        } else if (command.equals(Command.CYNOLOGIST_ADVICES_COMMAND.getCommand())) {
             String text = "Советы кинолога по первичному общению с собакой"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(CYNOLOGIST_CONTACTS_COMMAND.command())) {
+        } else if (command.equals(Command.CYNOLOGIST_CONTACTS_COMMAND.getCommand())) {
             String text = "Рекомендации по проверенным кинологам для дальнейшего обращения к ним"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(USUAL_REFUSALS_COMMAND.command())) {
+        } else if (command.equals(Command.USUAL_REFUSALS_COMMAND.getCommand())) {
             String text = "Список причин, почему могут отказать и не дать забрать собаку из приюта"; //требуемая информация
             sendPlainText(chatId, text);
-        } else if (command.equals(SEND_REPORT_COMMAND.command())) {
+        } else if (command.equals(Command.SEND_REPORT_COMMAND.getCommand())) {
             String reportFormText = """
                     Уважаемый опекун! В качестве отчета пошагово направляются следующие данные:
                     1) Фото животного.
@@ -299,6 +310,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             String requestForAgreementNumber = "Для сохранения отчета, пожалуйста, пришлите номер договора";
             sendPlainText(chatId, reportFormText);
             sendPlainText(chatId, requestForAgreementNumber);
+        } else if (command.equals(Command.VOLUNTEER_CONFIRM_COMMAND.getCommand())) {
+            String text = "Спасибо за подтверждение заявки";
+            sendPlainText(chatId, text);
         } else {
             String text = "Неизвестная команда";
             sendPlainText(chatId, text);
@@ -316,7 +330,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         String clientName;
         String clientPhoneNumber;
         if (matcherClientContact.matches()) {
-            clientName = matcherClientContact.group(1);
+            clientName = StringUtils.capitalize(matcherClientContact.group(1).toLowerCase());
             clientPhoneNumber = matcherClientContact.group(4);
             if (!this.carerService.existsCarerByFullNameAndPhoneNumber(clientName, clientPhoneNumber)) {
                 Carer carer = this.carerService.addCarer(clientName, 20, clientPhoneNumber);
@@ -381,13 +395,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void startCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Узнать информацию о приюте").
-                        callbackData(SHELTER_INFO_COMMAND.command()),
+                        callbackData(Command.SHELTER_INFO_COMMAND.getCommand()),
                 new InlineKeyboardButton("Как взять собаку из приюта")
-                        .callbackData(TAKE_A_DOG_COMMAND.command()),
+                        .callbackData(Command.TAKE_A_DOG_COMMAND.getCommand()),
                 new InlineKeyboardButton("Прислать отчет о питомце").
-                        callbackData(SEND_REPORT_MENU_COMMAND.command()),
+                        callbackData(Command.SEND_REPORT_MENU_COMMAND.getCommand()),
                 new InlineKeyboardButton("Позвать волонтера").
-                        callbackData(CALL_VOLUNTEER_COMMAND.command())
+                        callbackData(Command.CALL_VOLUNTEER_COMMAND.getCommand())
         ));
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         buttons.forEach(keyboard::addRow);
@@ -408,20 +422,20 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void shelterInfoCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Основная информация")
-                        .callbackData(SHELTER_MAIN_INFO_COMMAND.command()),
+                        .callbackData(Command.SHELTER_MAIN_INFO_COMMAND.getCommand()),
                 new InlineKeyboardButton("Расписание работы, адрес, " +
                         "схема проезда, контактная информация")
-                        .callbackData(SHELTER_WORK_SCHEDULE_COMMAND.command()),
+                        .callbackData(Command.SHELTER_WORK_SCHEDULE_COMMAND.getCommand()),
                 new InlineKeyboardButton("Общие рекомендации о технике " +
                         "безопасности на территории приюта")
-                        .callbackData(SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.command()),
+                        .callbackData(Command.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.getCommand()),
                 new InlineKeyboardButton("Записать Ваши контактные " +
                         "данные для связи")
-                        .callbackData(WRITE_CLIENT_CONTACT_COMMAND.command()),
+                        .callbackData(Command.WRITE_CLIENT_CONTACT_COMMAND.getCommand()),
                 new InlineKeyboardButton("Позвать волонтера")
-                        .callbackData(CALL_VOLUNTEER_COMMAND.command()),
+                        .callbackData(Command.CALL_VOLUNTEER_COMMAND.getCommand()),
                 new InlineKeyboardButton("Вернуться назад")
-                        .callbackData(BACK_COMMAND.command())
+                        .callbackData(Command.BACK_COMMAND.getCommand())
         ));
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         buttons.forEach(keyboard::addRow);
@@ -441,29 +455,29 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void takeDogCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Узнать правила знакомства с собакой")
-                        .callbackData(INTRODUCTION_TO_DOG_COMMAND.command()),
+                        .callbackData(Command.INTRODUCTION_TO_DOG_COMMAND.getCommand()),
                 new InlineKeyboardButton("Получить список документов")
-                        .callbackData(TAKE_DOCUMENTS_LIST_COMMAND.command()),
+                        .callbackData(Command.TAKE_DOCUMENTS_LIST_COMMAND.getCommand()),
                 new InlineKeyboardButton("Транспортировка животного")
-                        .callbackData(TRANSFER_A_DOG_COMMAND.command()),
+                        .callbackData(Command.TRANSFER_A_DOG_COMMAND.getCommand()),
                 new InlineKeyboardButton("Обустройство дома для щенка")
-                        .callbackData(ENVIRONMENT_FOR_PUPPY_COMMAND.command()),
+                        .callbackData(Command.ENVIRONMENT_FOR_PUPPY_COMMAND.getCommand()),
                 new InlineKeyboardButton("Обустройство дома для взрослой собаки")
-                        .callbackData(ENVIRONMENT_FOR_DOG_COMMAND.command()),
+                        .callbackData(Command.ENVIRONMENT_FOR_DOG_COMMAND.getCommand()),
                 new InlineKeyboardButton("Обустройство дома для собаки с ограниченными возможностями")
-                        .callbackData(ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.command()),
+                        .callbackData(Command.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.getCommand()),
                 new InlineKeyboardButton("советы кинолога")
-                        .callbackData(CYNOLOGIST_ADVICES_COMMAND.command()),
+                        .callbackData(Command.CYNOLOGIST_ADVICES_COMMAND.getCommand()),
                 new InlineKeyboardButton("Контакты проверенных кинологов")
-                        .callbackData(CYNOLOGIST_CONTACTS_COMMAND.command()),
+                        .callbackData(Command.CYNOLOGIST_CONTACTS_COMMAND.getCommand()),
                 new InlineKeyboardButton("Частые причины отказов в выдаче собаки кандидату")
-                        .callbackData(USUAL_REFUSALS_COMMAND.command()),
+                        .callbackData(Command.USUAL_REFUSALS_COMMAND.getCommand()),
                 new InlineKeyboardButton("Записать Ваши контактные данные для связи")
-                        .callbackData(WRITE_CLIENT_CONTACT_COMMAND.command()),
+                        .callbackData(Command.WRITE_CLIENT_CONTACT_COMMAND.getCommand()),
                 new InlineKeyboardButton("Позвать волонтера")
-                        .callbackData(CALL_VOLUNTEER_COMMAND.command()),
+                        .callbackData(Command.CALL_VOLUNTEER_COMMAND.getCommand()),
                 new InlineKeyboardButton("Вернуться назад")
-                        .callbackData(BACK_COMMAND.command())
+                        .callbackData(Command.BACK_COMMAND.getCommand())
         ));
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         buttons.forEach(keyboard::addRow);
@@ -482,11 +496,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void sendReportCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Прислать отчет")
-                        .callbackData(SEND_REPORT_COMMAND.command()),
+                        .callbackData(Command.SEND_REPORT_COMMAND.getCommand()),
                 new InlineKeyboardButton("Позвать волонтера")
-                        .callbackData(CALL_VOLUNTEER_COMMAND.command()),
+                        .callbackData(Command.CALL_VOLUNTEER_COMMAND.getCommand()),
                 new InlineKeyboardButton("Вернуться назад")
-                        .callbackData(BACK_COMMAND.command())
+                        .callbackData(Command.BACK_COMMAND.getCommand())
         ));
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         buttons.forEach(keyboard::addRow);
@@ -514,9 +528,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 "Волонтер свяжется с Вами в ближайшее время");
         SendMessage sendMessageForVolunteer = new SendMessage(volunteerChatId,
                 "Необходимо связаться с клиентом " + clientFirstName + " "
-                        + clientLastName + " " + "[User link](tg://user?id="
-                        + clientId + " )");
+                        + clientLastName + " " + "[User link](tg://user?id=" + clientId + " )");
+        InlineKeyboardButton button = new InlineKeyboardButton("Подтвердить")
+                .callbackData(Command.VOLUNTEER_CONFIRM_COMMAND.getCommand());
+
+        List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(button));
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        buttons.forEach(keyboard::addRow);
+
         sendMessageForVolunteer.parseMode(ParseMode.Markdown);
+        sendMessageForVolunteer.replyMarkup(keyboard);
         telegramBot.execute(sendMessageForClient);
         telegramBot.execute(sendMessageForVolunteer);
     }
