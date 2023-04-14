@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class CarerService {
@@ -26,50 +27,38 @@ public class CarerService {
     }
 
     /**
-     * Добавление данных об опекуне животного
-     *
-     * <br>//@param setAge <b>Возраст</b>
-     *
-     * @see CarerRepository
-     *
-     *
-     */
-    @Transactional
-    public CarerRecord addCarer(CarerRecord carerRecord) {
-        if (carerRecord != null) {
-            LOGGER.info("Was invoked method for adding carer");
-            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
-            return this.modelMapper.mapToCarerRecord(carer);
-        } else {
-            LOGGER.error("Input object 'carerRecord' is null");
-            throw new IllegalArgumentException("Требуется добавить опекуна");
-        }
-    }
-
-    /**
-     * Добавление информации по опекуну через телеграмм бота.
-     * @param fullName {@link Carer#setFullName(String)}
-     * @param age {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
+     * Добавление информации по опекуну через телеграм бота.
+     * @param fullName    {@link Carer#setFullName(String)}
+     * @param age         {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
      * @param phoneNumber {@link Carer#setPhoneNumber(String)}
      * @return данные по опекуну добавлены
-     * @throws IllegalArgumentException Если же поля данных: Имя  и телефон пустые
-     *
+     * @throws IllegalArgumentException Если же поля данных: Имя и телефон пустые
      * @see CarerRepository
      */
     @Transactional
-    public Carer addCarer(String fullName, int age, String phoneNumber) {
+    public Carer addCarer(String fullName, int age, String phoneNumber, long chatId) {
         if (!fullName.isEmpty() && !fullName.isBlank() &&
                 !phoneNumber.isEmpty() && !phoneNumber.isBlank()) {
             Carer carer = new Carer();
             carer.setFullName(fullName);
             carer.setBirthYear(LocalDate.now().getYear() - age);
             carer.setPhoneNumber(phoneNumber);
+            carer.setChatId(chatId);
             LOGGER.info("Was invoked method for adding carer from Telegram bot");
             this.carerRepository.save(carer);
             return carer;
         } else {
             LOGGER.error("Carer's full name or phone number is empty");
             throw new IllegalArgumentException("Требуется указать корректные данные: имя опекуна, телефонный номер опекуна");
+        }
+    }
+
+    @Transactional
+    public Carer addCarer(Carer carer) {
+        if (carer != null) {
+            return this.carerRepository.save(carer);
+        } else {
+            throw new IllegalArgumentException("Требуется добавить опекуна");
         }
     }
 
@@ -94,21 +83,25 @@ public class CarerService {
 
     /**
      * Внесение изменений в информацию <b>опекуна</b>
-     * @param carerRecord класс DTO
-     * @return измененная информация о опекуне.
+     * //     * @param carerRecord класс DTO
+     * @return измененная информация об опекуне.
      * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
      */
     @Transactional
-    public Carer findCarer(String agreementNumber) {
-        return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
+    public Carer findCarerByChatId(long chatId) {
+        return this.carerRepository.findCarerByChatId(chatId)
+                .orElse(null);
     }
 
     @Transactional
     public CarerRecord editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
             LOGGER.info("Was invoked method to edit carer");
-            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
+            Carer carer = this.carerRepository.findById(carerRecord.getId())
+                    .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
+            this.modelMapper.updateCarer(carerRecord, carer);
+            this.carerRepository.save(carer);
             return this.modelMapper.mapToCarerRecord(carer);
         } else {
             LOGGER.error("Input object 'carerRecord' is null");
@@ -118,10 +111,9 @@ public class CarerService {
 
     /**
      * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     *
      * @param id идентификатор опекуна
-     *
      * @throws IllegalArgumentException При не верном указании id.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)
      */
     @Transactional
@@ -135,31 +127,24 @@ public class CarerService {
         }
     }
 
-    /**
-     * Метод с булевым значением, проверяющий существует ли полное имя и телефон в репозитории опеукуна.
-     * @param fullName
-     * @param phoneNumber
-     * @return true/false
-     * <br>
-     * {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#existsCarerByFullNameAndPhoneNumber(String, String)}
-     */
-    public boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber) {
-        return this.carerRepository.existsCarerByFullNameAndPhoneNumber(fullName, phoneNumber);
-    }
-
-    public Carer findCarerByPhoneNumber(String phoneNumber) {
+    @Transactional
+    public CarerRecord findCarerByPhoneNumber(String phoneNumber) {
         LOGGER.info("Getting Carer by his phone number");
-        Pattern pattern = Pattern.compile("(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})");
+        Pattern pattern = Pattern.compile("^(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$");
         Matcher matcher = pattern.matcher(phoneNumber);
         if (matcher.matches()) {
-            return carerRepository.findCarerByPhoneNumber(phoneNumber);
+            Carer carer = this.carerRepository.findCarerByPhoneNumber(phoneNumber)
+                    .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
+            return this.modelMapper.mapToCarerRecord(carer);
         } else {
-            throw new IllegalArgumentException("Введите номер телефона в соответствипе с примером");
+            throw new IllegalArgumentException("Введите номер телефона в соответствие с примером");
         }
-
     }
 
-    public List<Carer> findAll(){
-        return carerRepository.findAll ();
+    @Transactional
+    public List<CarerRecord> findAll() {
+        return this.carerRepository.findAll().stream()
+                .map(this.modelMapper::mapToCarerRecord)
+                .collect(Collectors.toList());
     }
 }

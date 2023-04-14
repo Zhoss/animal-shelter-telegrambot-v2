@@ -3,12 +3,12 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 /**
  * Клас описывающий поля для приема информации по <b> опекуну </b>, работает в Swagger.
  * <br>Параметры:
- *  * <br> long id
- *  * <br> String secondName;
- *  * <br> String firstName;
- *  * <br> String patronymic;
- *  * <br> int age;
- *  * <br> String phoneNumber;
+ * * <br> long id
+ * * <br> String secondName;
+ * * <br> String firstName;
+ * * <br> String patronymic;
+ * * <br> int age;
+ * * <br> String phoneNumber;
  */
 public class CarerRecord {
     private long id;
@@ -17,9 +17,10 @@ public class CarerRecord {
     private String patronymic;
     private int age;
     private String phoneNumber;
+    private String passportNumber;
+    private long dogId;
 
     public CarerRecord() {
-
     }
 
     public long getId() {
@@ -68,5 +69,21 @@ public class CarerRecord {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getPassportNumber() {
+        return passportNumber;
+    }
+
+    public void setPassportNumber(String passportNumber) {
+        this.passportNumber = passportNumber;
+    }
+
+    public long getDogId() {
+        return dogId;
+    }
+
+    public void setDogId(long dogId) {
+        this.dogId = dogId;
     }
 }

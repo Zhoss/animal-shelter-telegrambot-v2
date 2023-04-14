@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DogService {
@@ -29,7 +29,6 @@ public class DogService {
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return данные по собаке добавлены
      * @throws IllegalArgumentException Если параметр <b>dogRecord</b> пустой.
-     *
      * @see DogRepository
      */
     @Transactional
@@ -50,10 +49,8 @@ public class DogService {
      * @param id через {@link pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository#findById(Object)}
      * @return Найденную информацию по собаке.
      * @throws DogNotFoundException Если нет информации в БД.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      */
-
     @Transactional
     public DogRecord findDog(long id) {
         if (id < 0) {
@@ -72,7 +69,6 @@ public class DogService {
      * @param dogRecord {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord}
      * @return Информация по собаке изменена.
      * @throws IllegalArgumentException Если одно из полей {@link pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord} пустое.
-     *
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
     @Transactional
@@ -86,15 +82,16 @@ public class DogService {
             throw new IllegalArgumentException("Требуется добавить собаку");
         }
     }
+
     /**
      * Удаление информации по собаке. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
+     *
      * @param id идентификатор собаки.
-     *
      * @throws IllegalArgumentException При не верном указании id.
-     *
      * @see org.springframework.data.jpa.repository.JpaRepository
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository
      */
+    @Transactional
     public void deleteDog(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for deleting dog is incorrect");
@@ -105,4 +102,10 @@ public class DogService {
         }
     }
 
+    @Transactional
+    public List<DogRecord> findAllDogs() {
+        return this.dogRepository.findAll().stream()
+                .map(this.modelMapper::mapToDogRecord)
+                .collect(Collectors.toList());
+    }
 }

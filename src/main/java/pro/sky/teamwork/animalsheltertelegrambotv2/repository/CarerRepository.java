@@ -3,10 +3,10 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 
+import java.util.Optional;
+
 public interface CarerRepository extends JpaRepository<Carer, Long> {
-    boolean existsCarerByFullNameAndPhoneNumber(String fullName, String phoneNumber);
+    Optional<Carer> findCarerByPhoneNumber(String phoneNumber);
 
-    public Carer findCarerByPhoneNumber(String phoneNumber);
-
-    Carer findCarerByAgreementNumber(String agreementNumber);
+    Optional<Carer> findCarerByChatId(long chatId);
 }

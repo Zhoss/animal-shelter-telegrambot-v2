@@ -1,10 +1,13 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "dogs")
@@ -25,13 +28,8 @@ public class Dog {
     private boolean taken;
     @Column(name = "on_probation", nullable = false)
     private boolean onProbation;
-    @OneToOne(mappedBy = "dog")
-    private Carer carer;
-    @OneToMany(mappedBy = "dog")
-    private List<DailyReport> dailyReports;
 
     public Dog() {
-
     }
 
     public long getId() {
@@ -114,22 +112,6 @@ public class Dog {
         this.onProbation = onProbation;
     }
 
-    public Carer getCarer() {
-        return carer;
-    }
-
-    public void setCarer(Carer carer) {
-        this.carer = carer;
-    }
-
-    public List<DailyReport> getDailyReports() {
-        return dailyReports;
-    }
-
-    public void setDailyReports(List<DailyReport> dailyReports) {
-        this.dailyReports = dailyReports;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -145,30 +127,14 @@ public class Dog {
 
     @Override
     public String toString() {
-        return "Dog{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", breed='" + breed + '\'' +
-                ", coatColor='" + coatColor + '\'' +
-                ", age=" + age +
-                ", features='" + features + '\'' +
-                ", taken=" + taken +
-                ", onProbation=" + onProbation +
-                ", carer=" + carer +
-                ", dailyReports=" + dailyReports +
-                '}';
+        return "Собака: " +
+                "id = " + id +
+                ", кличка = " + name +
+                ", порода = " + breed +
+                ", окрас = " + coatColor +
+                ", возраст = " + age +
+                ", особые приметы = " + features +
+                ", взята опекуном = " + taken +
+                ", на испытательном сроке = " + onProbation;
     }
-
-    //    @Override
-//    public String toString() {
-//        return "Собака: " +
-//                "id = " + id +
-//                ", кличка = " + name +
-//                ", порода = " + breed +
-//                ", окрас = " + coatColor +
-//                ", возраст = " + age +
-//                ", особые приметы = " + features +
-//                ", взята опекуном = " + taken +
-//                ", на испытательном сроке = " + onProbation;
-//    }
 }

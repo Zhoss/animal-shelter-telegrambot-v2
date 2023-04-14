@@ -19,9 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
+
+import java.util.List;
 
 /**
  * Класс описывающий работу контроллера собаки
@@ -129,6 +130,11 @@ public class DogController {
                                            @PathVariable long id) {
         this.dogService.deleteDog(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<DogRecord>> findAllDogs() {
+        return ResponseEntity.ok(this.dogService.findAllDogs());
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

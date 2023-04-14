@@ -3,21 +3,24 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
 public class DailyReportService {
-    private final DailyReportRepository dailyReportRepository;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DailyReportService.class);
+    private final DailyReportRepository dailyReportRepository;
+    private final ModelMapper modelMapper;
 
-    public DailyReportService(DailyReportRepository dailyReportRepository) {
+    public DailyReportService(DailyReportRepository dailyReportRepository, ModelMapper modelMapper) {
         this.dailyReportRepository = dailyReportRepository;
+        this.modelMapper = modelMapper;
     }
 
     /**
@@ -27,9 +30,12 @@ public class DailyReportService {
      * @return возвращает отчет по опекуну (по его id)
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerId(Long)
      */
-    public List<DailyReport> findDailyReportByCarer(Long carerId) {
+    public List<DailyReportRecord> findDailyReportByCarer(Long carerId) {
         LOGGER.info("Получение списка отчётов по опекуну");
-        return dailyReportRepository.findDailyReportByCarerId(carerId);
+        List<DailyReport> dailyReports = dailyReportRepository.findDailyReportByCarerId(carerId);
+        return dailyReports.stream()
+                .map(this.modelMapper::mapToDailyRecordRecord)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -39,18 +45,17 @@ public class DailyReportService {
      * @return возвращает отчет по опекуну (по его id) и дате.
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerIdAndReportDate(Long, LocalDate)
      */
-    public List<DailyReport> findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
+    public DailyReportRecord findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
         LOGGER.info("Получение списка отчётов по опекуну и дате отчёта");
-        return dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
+        return this.modelMapper.mapToDailyRecordRecord(this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate));
     }
 
-    public List<DailyReport> findDailyReportsByDogId(Integer dogId) {
-        LOGGER.info("Получение списка отчётов по ID собаки");
-        return dailyReportRepository.findDailyReportsByDogId(dogId);
+    public DailyReport findDailyReportByCarerIdAndDate(Long carerId, LocalDate reportDate) {
+        return this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
     }
 
-    public DailyReport findDailyReportByDogAndReportDate(Integer dogId,LocalDate date) {
-        LOGGER.info("Получение отчёта по ID собаки на определённую дату");
-        return dailyReportRepository.findDailyReportsByDogIdAndReportDateIs(dogId,date);
+    public DailyReport addDailyReport(DailyReport dailyReport) {
+        LOGGER.info("Был вызван метод по добавлению ежедневного отчета из TelegramBotUpdatesListener");
+        return this.dailyReportRepository.save(dailyReport);
     }
 }
