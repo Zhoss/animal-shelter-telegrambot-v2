@@ -47,7 +47,9 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<CarerRecord> findCarer(@Parameter(description = "ID Опекуна") @PathVariable long id) {
+    public ResponseEntity<CarerRecord> findCarer(
+            @Parameter(description = "ID Опекуна")
+            @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
 
@@ -99,6 +101,10 @@ public class CarerController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "Поиск опекуна по номеру телефона",
+            tags = "Опекун"
+    )
     @GetMapping
     public ResponseEntity<Carer> getCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
