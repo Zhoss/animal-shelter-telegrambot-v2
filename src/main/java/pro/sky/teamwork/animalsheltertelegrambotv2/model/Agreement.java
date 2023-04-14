@@ -1,5 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -21,6 +22,7 @@ public class Agreement {
     @Column(name = "conclusion_date", nullable = false)
     private LocalDate conclusionDate;
     @OneToOne(mappedBy = "agreement")
+//    @JsonIgnore
     private Carer carer;
 
     public Agreement() {

@@ -2,8 +2,10 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 
@@ -52,5 +54,22 @@ public class ModelMapper {
         dogRecord.setAge(dog.getAge());
         dogRecord.setFeatures(dog.getFeatures());
         return dogRecord;
+    }
+
+    public Agreement mapToAgreementEntity(AgreementRecord agreementRecord) {
+        Agreement agreement = new Agreement();
+//        agreement.setId(1);
+        agreement.setNumber(agreementRecord.getNumber());
+        agreement.setConclusionDate(agreementRecord.getConclusionDate());
+        agreement.setCarer(agreementRecord.getCarer());
+        return agreement;
+    }
+
+    public AgreementRecord mapToAgreementRecord(Agreement agreement) {
+        AgreementRecord agreementRecord = new AgreementRecord();
+        agreementRecord.setNumber(agreement.getNumber());
+        agreementRecord.setConclusionDate(agreement.getConclusionDate());
+        agreementRecord.setCarer(agreement.getCarer());
+        return agreementRecord;
     }
 }
