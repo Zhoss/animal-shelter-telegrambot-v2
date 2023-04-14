@@ -516,10 +516,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * @param clientLastName  фамилия клиента, с которым должен связаться волонтёр
      */
 
-    public void sendCallVolunteerCommand(long chatId,
+    public void sendCallVolunteerCommand(@Value("${telegram.bot.client.chat}")long chatId,
                                          long clientId,
                                          String clientFirstName,
                                          String clientLastName,
+                                         @Value("${telegram.bot.support.chat}")
                                          long volunteerChatId) {
         SendMessage sendMessageForClient = new SendMessage(chatId,
                 "Волонтер свяжется с Вами в ближайшее время");
