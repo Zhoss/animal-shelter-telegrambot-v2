@@ -4,20 +4,36 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
+import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 
 import java.time.LocalDate;
 
 @Service
 public class ModelMapper {
-    public Carer mapToCarerEntity(CarerRecord carerRecord) {
-        Carer carer = new Carer();
+    private final DogRepository dogRepository;
+
+    public ModelMapper(DogRepository dogRepository) {
+        this.dogRepository = dogRepository;
+    }
+
+    private void mapToCarer(CarerRecord carerRecord, Carer carer) {
+        carer.setId(carerRecord.getId());
         carer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
                 StringUtils.capitalize(carerRecord.getFirstName().toLowerCase()) + " " +
                 StringUtils.capitalize(carerRecord.getPatronymic().toLowerCase()));
         carer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
         carer.setPhoneNumber(carerRecord.getPhoneNumber());
+        carer.setPassportNumber(carerRecord.getPassportNumber());
+        Dog dog = dogRepository.findById(carerRecord.getDogId()).orElseThrow(DogNotFoundException::new);
+        carer.setDog(dog);
+    }
+
+    public Carer mapToCarerEntity(CarerRecord carerRecord) {
+        Carer carer = new Carer();
+        mapToCarer(carerRecord, carer);
         return carer;
     }
 
@@ -30,7 +46,13 @@ public class ModelMapper {
         carerRecord.setPatronymic(fullName[2]);
         carerRecord.setAge(LocalDate.now().getYear() - carer.getBirthYear());
         carerRecord.setPhoneNumber(carer.getPhoneNumber());
+        carerRecord.setPassportNumber(carer.getPassportNumber());
+        carerRecord.setDogId(carer.getDog().getId());
         return carerRecord;
+    }
+
+    public void updateCarer(CarerRecord carerRecord, Carer carer) {
+        mapToCarer(carerRecord, carer);
     }
 
     public Dog mapToDogEntity(DogRecord dogRecord) {

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.JoinColumn;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -20,15 +21,11 @@ public class Agreement {
     private String number;
     @Column(name = "conclusion_date", nullable = false)
     private LocalDate conclusionDate;
-    @OneToOne(mappedBy = "agreement")
+    @OneToOne
+    @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
 
     public Agreement() {
-
-    }
-
-    public void setCarer(Carer carer) {
-        this.carer = carer;
     }
 
     public long getId() {
@@ -44,7 +41,11 @@ public class Agreement {
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        if (!number.isEmpty() && !number.isBlank()) {
+            this.number = number;
+        } else {
+            throw new IllegalArgumentException("Требуется указать корректный номер договора");
+        }
     }
 
     public LocalDate getConclusionDate() {
@@ -52,14 +53,20 @@ public class Agreement {
     }
 
     public void setConclusionDate(LocalDate conclusionDate) {
-        this.conclusionDate = conclusionDate;
+        if (!conclusionDate.isBefore(LocalDate.now())) {
+            this.conclusionDate = conclusionDate;
+        } else {
+            throw new IllegalArgumentException("Договор не может быть заключен с прошедшей датой");
+        }
     }
 
     public Carer getCarer() {
         return carer;
     }
 
-
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,12 +1,15 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
+import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
@@ -26,27 +29,6 @@ public class CarerService {
     }
 
     /**
-     * Добавление данных об опекуне животного
-     *
-     * <br>//@param setAge <b>Возраст</b>
-     *
-     * @see CarerRepository
-     *
-     *
-     */
-    @Transactional
-    public CarerRecord addCarer(CarerRecord carerRecord) {
-        if (carerRecord != null) {
-            LOGGER.info("Was invoked method for adding carer");
-            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
-            return this.modelMapper.mapToCarerRecord(carer);
-        } else {
-            LOGGER.error("Input object 'carerRecord' is null");
-            throw new IllegalArgumentException("Требуется добавить опекуна");
-        }
-    }
-
-    /**
      * Добавление информации по опекуну через телеграмм бота.
      * @param fullName {@link Carer#setFullName(String)}
      * @param age {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
@@ -57,13 +39,14 @@ public class CarerService {
      * @see CarerRepository
      */
     @Transactional
-    public Carer addCarer(String fullName, int age, String phoneNumber) {
+    public Carer addCarer(String fullName, int age, String phoneNumber, long chatId) {
         if (!fullName.isEmpty() && !fullName.isBlank() &&
                 !phoneNumber.isEmpty() && !phoneNumber.isBlank()) {
             Carer carer = new Carer();
             carer.setFullName(fullName);
             carer.setBirthYear(LocalDate.now().getYear() - age);
             carer.setPhoneNumber(phoneNumber);
+            carer.setChatId(chatId);
             LOGGER.info("Was invoked method for adding carer from Telegram bot");
             this.carerRepository.save(carer);
             return carer;
@@ -94,21 +77,23 @@ public class CarerService {
 
     /**
      * Внесение изменений в информацию <b>опекуна</b>
-     * @param carerRecord класс DTO
+//     * @param carerRecord класс DTO
      * @return измененная информация о опекуне.
      * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
      */
     @Transactional
-    public Carer findCarer(String agreementNumber) {
-        return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
+    public Carer findCarerByChatId(long chatId) {
+        return this.carerRepository.findCarerByChatId(chatId);
     }
 
     @Transactional
     public CarerRecord editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
             LOGGER.info("Was invoked method to edit carer");
-            Carer carer = this.carerRepository.save(this.modelMapper.mapToCarerEntity(carerRecord));
+            Carer carer = this.carerRepository.findById(carerRecord.getId())
+                    .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
+            this.modelMapper.updateCarer(carerRecord, carer);
             return this.modelMapper.mapToCarerRecord(carer);
         } else {
             LOGGER.error("Input object 'carerRecord' is null");

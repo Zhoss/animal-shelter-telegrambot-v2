@@ -39,18 +39,13 @@ public class DailyReportService {
      * @return возвращает отчет по опекуну (по его id) и дате.
      * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerIdAndReportDate(Long, LocalDate)
      */
-    public List<DailyReport> findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
+    public DailyReport findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
         LOGGER.info("Получение списка отчётов по опекуну и дате отчёта");
         return dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
     }
 
-    public List<DailyReport> findDailyReportsByDogId(Integer dogId) {
-        LOGGER.info("Получение списка отчётов по ID собаки");
-        return dailyReportRepository.findDailyReportsByDogId(dogId);
-    }
-
-    public DailyReport findDailyReportByDogAndReportDate(Integer dogId,LocalDate date) {
-        LOGGER.info("Получение отчёта по ID собаки на определённую дату");
-        return dailyReportRepository.findDailyReportsByDogIdAndReportDateIs(dogId,date);
+    public DailyReport addDailyReport(DailyReport dailyReport) {
+        LOGGER.info("Был вызван метод по добавлению ежедневного отчета из TelegramBotUpdatesListener");
+        return this.dailyReportRepository.save(dailyReport);
     }
 }

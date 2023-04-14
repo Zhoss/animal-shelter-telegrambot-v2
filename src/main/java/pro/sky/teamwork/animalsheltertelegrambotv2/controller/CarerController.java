@@ -9,19 +9,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
 @RestController
@@ -31,36 +29,6 @@ public class CarerController {
 
     public CarerController(CarerService carerService) {
         this.carerService = carerService;
-    }
-
-    @Operation(
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Добавляемый опекун",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = Carer.class),
-                            examples = {
-                                    @ExampleObject(
-                                            value = "{\"id\": 0,"
-                                                    + "\"secondName\": \"Иванов\","
-                                                    + "\"firstName\": \"Иван\","
-                                                    + "\"patronymic\": \"Иванович\","
-                                                    + "\"age\": 30,"
-                                                    + "\"phoneNumber\": \"+7(999)1234567\""
-                                                    + "}"
-                                    )
-                            }
-                    )
-            ),
-            summary = "Добавление данных опекуна",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Carer added"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }, tags = "Опекун"
-    )
-    @PostMapping
-    public ResponseEntity<CarerRecord> addCarer(@RequestBody CarerRecord carerRecord) {
-        return ResponseEntity.ok(this.carerService.addCarer(carerRecord));
     }
 
     @Operation(
@@ -96,7 +64,9 @@ public class CarerController {
                                                     + "\"firstName\": \"Иван\","
                                                     + "\"patronymic\": \"Иванович\","
                                                     + "\"age\": 30,"
-                                                    + "\"phoneNumber\": \"+7(999)1234567\""
+                                                    + "\"phoneNumber\": \"+7(999)1234567\","
+                                                    + "\"passportNumber\": \"1234 123456\","
+                                                    + "\"dogId\": \"1\""
                                                     + "}"
                                     )
                             }
@@ -108,10 +78,11 @@ public class CarerController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }, tags = "Опекун"
     )
-    @PutMapping
+    @PatchMapping
     public ResponseEntity<CarerRecord> editCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
+
     @Operation(
             summary = "Удаление записи о опекуне",
             responses = {
@@ -132,7 +103,7 @@ public class CarerController {
     public ResponseEntity<Carer> getCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
             @RequestParam String phone) {
-        var carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
+        Carer carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
         return ResponseEntity.ok(carerByPhoneNumber);
     }
 

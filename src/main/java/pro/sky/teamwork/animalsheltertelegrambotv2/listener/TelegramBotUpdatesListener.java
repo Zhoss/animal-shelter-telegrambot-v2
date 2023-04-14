@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.VolunteerChat;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -52,61 +54,18 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 public class TelegramBotUpdatesListener implements UpdatesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
-    /**
-     * Константа указывающая ID чата волонтеров
-     */
-    private final static long VOLUNTEER_CHAT_ID = 1517311315; //указать id чата волонтеров, сейчас это мой личный ID
-    public final static BotCommand START_COMMAND = new BotCommand("/start",
-            "Основное меню");
-    public final static BotCommand SHELTER_INFO_COMMAND = new BotCommand("/shelter_info",
-            "Меню с информацией о приюте");
-    public final static BotCommand SHELTER_MAIN_INFO_COMMAND = new BotCommand("/shelter_main_info",
-            "Основная информация о приюте");
-    public final static BotCommand SHELTER_WORK_SCHEDULE_COMMAND = new BotCommand("/shelter_work_schedule",
-            "Информация о расписании работы приюта, адресе, схеме проезда, контактной информации");
-    public final static BotCommand SHELTER_SAFETY_RECOMMENDATIONS_COMMAND = new BotCommand("/shelter_safety_recommendations",
-            "Рекомендации о технике безопасности на территории приюта");
-    public final static BotCommand WRITE_CLIENT_CONTACT_COMMAND = new BotCommand("/write_contact_information",
-            "Записать контактные данные для связи с волонтерами");
-    public final static BotCommand CALL_VOLUNTEER_COMMAND = new BotCommand("/call_volunteer",
-            "Позвать волонтера");
-    public final static BotCommand BACK_COMMAND = new BotCommand("/back",
-            "Вернуться назад");
-    public final static BotCommand TAKE_A_DOG_COMMAND = new BotCommand("/take_dog",
-            "Как взять собаку из приюта");
-    public final static BotCommand INTRODUCTION_TO_DOG_COMMAND = new BotCommand("/intro_dog",
-            "Узнать правила знакомства с собакой");
-    public final static BotCommand TAKE_DOCUMENTS_LIST_COMMAND = new BotCommand("/take_doc_list",
-            "Получить список документов");
-    public final static BotCommand TRANSFER_A_DOG_COMMAND = new BotCommand("/transfer_dog",
-            "Транспортировка животного");
-    public final static BotCommand ENVIRONMENT_FOR_PUPPY_COMMAND = new BotCommand("/puppy_environment",
-            "Обустройство дома для щенка");
-    public final static BotCommand ENVIRONMENT_FOR_DOG_COMMAND = new BotCommand("/dog_environment",
-            "Обустройство дома для взрослой собаки");
-    public final static BotCommand ENVIRONMENT_FOR_LIMITED_DOG_COMMAND = new BotCommand("/limited_dog_environment",
-            "Обустройство дома для собаки с ограниченными возможностями");
-    public final static BotCommand CYNOLOGIST_ADVICES_COMMAND = new BotCommand("/cynologist_advices",
-            "Советы кинолога");
-    public final static BotCommand CYNOLOGIST_CONTACTS_COMMAND = new BotCommand("/cynologist_contacts",
-            "Контакты проверенных кинологов");
-    public final static BotCommand USUAL_REFUSALS_COMMAND = new BotCommand("/usual_refusals",
-            "Частые причины отказов в выдаче собаки кандидату");
-    public final static BotCommand SEND_REPORT_MENU_COMMAND = new BotCommand("/send_report_menu",
-            "Прислать отчет о питомце");
-    public final static BotCommand SEND_REPORT_COMMAND = new BotCommand("/send_report",
-            "Прислать отчет");
-
     @Value("${dailyReports.photo.dir.path}")
     private String photosDir;
     private final TelegramBot telegramBot;
     private final CarerService carerService;
+    private final DailyReportService dailyReportService;
     private final VolunteerChatRepository volunteerChatRepository;
     private String agreementNumber;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, CarerService carerService, VolunteerChatRepository volunteerChatRepository) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, CarerService carerService, DailyReportService dailyReportService, VolunteerChatRepository volunteerChatRepository) {
         this.telegramBot = telegramBot;
         this.carerService = carerService;
+        this.dailyReportService = dailyReportService;
         this.volunteerChatRepository = volunteerChatRepository;
     }
 
@@ -191,10 +150,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         com.pengrad.telegrambot.model.File file = getFileResponse.file();
         String fullPath = this.telegramBot.getFullFilePath(file);
 
-        Carer carer = this.carerService.findCarer(this.agreementNumber);
+        Carer carer = this.carerService.findCarerByChatId(chatId);
+        String mediaType = getExtensions(Objects.requireNonNull(fullPath));
 
         Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
-                LocalDate.now() + "." + getExtensions(Objects.requireNonNull(fullPath)));
+                LocalDate.now() + "." + mediaType);
         try {
             URL url = new URL(fullPath);
             Files.createDirectories(filePath.getParent());
@@ -209,6 +169,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        DailyReport dailyReport = new DailyReport();
+        dailyReport.setCarer(carer);
+        dailyReport.setFilePath(filePath.toString());
+        dailyReport.setFileSize(file.fileSize());
+        dailyReport.setMediaType("image/" + mediaType);
+        dailyReport.setReportDate(LocalDate.now());
+        this.dailyReportService.addDailyReport(dailyReport);
 
         String text = """
                 Спасибо! Информация сохранена.
@@ -326,10 +294,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         String clientName;
         String clientPhoneNumber;
         if (matcherClientContact.matches()) {
-            clientName = StringUtils.capitalize(matcherClientContact.group(1).toLowerCase());
+            String[] words = matcherClientContact.group(1).split(" ");
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String word : words) {
+                stringBuilder.append(StringUtils.capitalize(word.toLowerCase())).append(" ");
+            }
+            clientName = stringBuilder.toString().trim();
             clientPhoneNumber = matcherClientContact.group(4);
             if (!this.carerService.existsCarerByFullNameAndPhoneNumber(clientName, clientPhoneNumber)) {
-                Carer carer = this.carerService.addCarer(clientName, 20, clientPhoneNumber);
+                Carer carer = this.carerService.addCarer(clientName, 20, clientPhoneNumber, chatId);
                 String textForVolunteer = "Прошу связаться с клиентом " + carer.getFullName() + " по телефону "
                         + carer.getPhoneNumber();
                 String textForClient = "Ваши контактные данные записаны. Волонтеры свяжутся с Вами в ближайшее время.";
@@ -515,7 +488,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * @param clientFirstName имя клиента, с которым должен связаться волонтёр
      * @param clientLastName  фамилия клиента, с которым должен связаться волонтёр
      */
-
     public void sendCallVolunteerCommand(long chatId,
                                          long clientId,
                                          String clientFirstName,
