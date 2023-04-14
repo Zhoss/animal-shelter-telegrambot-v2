@@ -22,6 +22,8 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/carer")
 public class CarerController {
@@ -105,12 +107,16 @@ public class CarerController {
             summary = "Поиск опекуна по номеру телефона",
             tags = "Опекун"
     )
-    @GetMapping
-    public ResponseEntity<Carer> getCarerByPhoneNumber(
+    @GetMapping("/phone-number")
+    public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
             @RequestParam String phone) {
-        Carer carerByPhoneNumber = this.carerService.findCarerByPhoneNumber(phone);
-        return ResponseEntity.ok(carerByPhoneNumber);
+        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CarerRecord>> findAllCarers() {
+        return ResponseEntity.ok(this.carerService.findAll());
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

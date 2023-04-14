@@ -2,7 +2,6 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.listener;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
-import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 
@@ -19,13 +18,14 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.VolunteerChat;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.*;
+import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 
@@ -39,9 +39,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,14 +58,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final TelegramBot telegramBot;
     private final CarerService carerService;
     private final DailyReportService dailyReportService;
+    private final AgreementService agreementService;
     private final VolunteerChatRepository volunteerChatRepository;
-    private String agreementNumber;
+    private final CarerRepository carerRepository;
+    private Timer timer;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, CarerService carerService, DailyReportService dailyReportService, VolunteerChatRepository volunteerChatRepository) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, CarerService carerService, DailyReportService dailyReportService, AgreementService agreementService, VolunteerChatRepository volunteerChatRepository, CarerRepository carerRepository) {
         this.telegramBot = telegramBot;
         this.carerService = carerService;
         this.dailyReportService = dailyReportService;
+        this.agreementService = agreementService;
         this.volunteerChatRepository = volunteerChatRepository;
+        this.carerRepository = carerRepository;
     }
 
     @PostConstruct
@@ -125,6 +128,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             volunteerChat.setName("Чат волонтеров " + LocalDate.now());
                             volunteerChat.setTelegramChatId(newVolunteerChatId);
                             this.volunteerChatRepository.save(volunteerChat);
+                        } else {
+                            VolunteerChat volunteerChat = this.volunteerChatRepository
+                                    .findByTelegramChatId(volunteerChatId);
+                            volunteerChat.setId(1);
+                            volunteerChat.setName("Чат волонтеров " + LocalDate.now());
+                            volunteerChat.setTelegramChatId(newVolunteerChatId);
+                            this.volunteerChatRepository.save(volunteerChat);
                         }
                     } else if (update.message().photo() != null) {
                         savePhotoFromCarer(update, chatId);
@@ -144,47 +154,53 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     private void savePhotoFromCarer(Update update, long chatId) {
-        PhotoSize[] photo = update.message().photo();
-        GetFile request = new GetFile(photo[photo.length - 1].fileId());
-        GetFileResponse getFileResponse = this.telegramBot.execute(request);
-        com.pengrad.telegrambot.model.File file = getFileResponse.file();
-        String fullPath = this.telegramBot.getFullFilePath(file);
-
         Carer carer = this.carerService.findCarerByChatId(chatId);
-        String mediaType = getExtensions(Objects.requireNonNull(fullPath));
+        if (carer != null) {
+            PhotoSize[] photo = update.message().photo();
+            GetFile request = new GetFile(photo[photo.length - 1].fileId());
+            GetFileResponse getFileResponse = this.telegramBot.execute(request);
+            com.pengrad.telegrambot.model.File file = getFileResponse.file();
+            String fullPath = this.telegramBot.getFullFilePath(file);
 
-        Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
-                LocalDate.now() + "." + mediaType);
-        try {
-            URL url = new URL(fullPath);
-            Files.createDirectories(filePath.getParent());
-            Files.deleteIfExists(filePath);
-            try (InputStream is = url.openStream();
-                 OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
-                 BufferedInputStream bis = new BufferedInputStream(is, 1024);
-                 BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
-            ) {
-                bis.transferTo(bos);
+            String mediaType = getExtensions(Objects.requireNonNull(fullPath));
+
+            Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
+                    LocalDate.now() + "." + mediaType);
+            try {
+                URL url = new URL(fullPath);
+                Files.createDirectories(filePath.getParent());
+                Files.deleteIfExists(filePath);
+                try (InputStream is = url.openStream();
+                     OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
+                     BufferedInputStream bis = new BufferedInputStream(is, 1024);
+                     BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
+                ) {
+                    bis.transferTo(bos);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            DailyReport dailyReport = new DailyReport();
+            dailyReport.setCarer(carer);
+            dailyReport.setFilePath(filePath.toString());
+            dailyReport.setFileSize(file.fileSize());
+            dailyReport.setMediaType("image/" + mediaType);
+            dailyReport.setReportDate(LocalDate.now());
+            this.dailyReportService.addDailyReport(dailyReport);
+
+            String text = """
+                    Спасибо! Информация сохранена.
+                    Пожалуйста, пришлите информацию о
+                    рационе животного.
+                    ВАЖНО! Сообщение должно начинаться с "2)"!
+                    """;
+            sendPlainText(chatId, text);
+        } else {
+            String text = "Опекун не найден. Если Вы являетесь опекуном, пожалуйста, " +
+                    "пришлите фото с телефона, с которого Вы оставляли свои контактные данные";
+            sendPlainText(chatId, text);
         }
-
-        DailyReport dailyReport = new DailyReport();
-        dailyReport.setCarer(carer);
-        dailyReport.setFilePath(filePath.toString());
-        dailyReport.setFileSize(file.fileSize());
-        dailyReport.setMediaType("image/" + mediaType);
-        dailyReport.setReportDate(LocalDate.now());
-        this.dailyReportService.addDailyReport(dailyReport);
-
-        String text = """
-                Спасибо! Информация сохранена.
-                Пожалуйста, пришлите информацию о
-                рационе животного.
-                ВАЖНО! Сообщение должно начинаться с "2)"!
-                """;
-        sendPlainText(chatId, text);
     }
 
     //метод по обработке только команд (начинающихся с "/")
@@ -271,9 +287,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     3) Общее самочувствие и привыкание к новому месту.
                     4) Изменение в поведении: отказ от старых привычек, приобретение новых.
                     """; //требуемая информация
-            String requestForAgreementNumber = "Для сохранения отчета, пожалуйста, пришлите номер договора";
+            String requestForPhoto = "Пожалуйста, пришлите фото животного (1 шт.)";
             sendPlainText(chatId, reportFormText);
-            sendPlainText(chatId, requestForAgreementNumber);
+            sendPlainText(chatId, requestForPhoto);
         } else if (command.equals(Command.VOLUNTEER_CONFIRM_COMMAND.getCommand())) {
             String text = "Спасибо за подтверждение заявки";
             sendPlainText(chatId, text);
@@ -288,9 +304,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         Pattern clientContactPattern = Pattern.compile(
                 "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
         Matcher matcherClientContact = clientContactPattern.matcher(message);
-        Pattern agreementNumberPattern = Pattern.compile(
-                "^С-2023/\\d+$"); //паттерн на номер договора(соглашения)
-        Matcher matcherAgreementNumber = agreementNumberPattern.matcher(message);
         String clientName;
         String clientPhoneNumber;
         if (matcherClientContact.matches()) {
@@ -301,29 +314,32 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             }
             clientName = stringBuilder.toString().trim();
             clientPhoneNumber = matcherClientContact.group(4);
-            if (!this.carerService.existsCarerByFullNameAndPhoneNumber(clientName, clientPhoneNumber)) {
-                Carer carer = this.carerService.addCarer(clientName, 20, clientPhoneNumber, chatId);
-                String textForVolunteer = "Прошу связаться с клиентом " + carer.getFullName() + " по телефону "
-                        + carer.getPhoneNumber();
+            Carer carer = this.carerService.findCarerByChatId(chatId);
+            if (carer == null) {
+                Carer newCarer = this.carerService.addCarer(clientName, 20, clientPhoneNumber, chatId);
+                String textForVolunteer = "Прошу связаться с клиентом " + newCarer.getFullName() + " по телефону "
+                        + newCarer.getPhoneNumber();
                 String textForClient = "Ваши контактные данные записаны. Волонтеры свяжутся с Вами в ближайшее время.";
                 sendPlainText(volunteerChatId, textForVolunteer);
                 sendPlainText(chatId, textForClient);
             } else {
-                String text = """
-                        Ваши контактные данные уже были записаны.
-                        Присылать контактные данные необходимо только
-                        в случае их изменения.
+                carer.setFullName(clientName);
+                carer.setPhoneNumber(clientPhoneNumber);
+                Carer updatedCarer = this.carerService.addCarer(carer);
+                String textForVolunteer = "Прошу связаться с клиентом " + updatedCarer.getFullName() + " по телефону "
+                        + updatedCarer.getPhoneNumber();
+                String textForClient = """
+                        Ваши контактные данные перезаписаны.
+                        Волонтеры свяжутся с Вами в ближайшее время.
                         """;
-                sendPlainText(chatId, text);
+                sendPlainText(volunteerChatId, textForVolunteer);
+                sendPlainText(chatId, textForClient);
             }
-        } else if (matcherAgreementNumber.matches()) {
-            this.agreementNumber = matcherAgreementNumber.group(0);
-            String text = """
-                    Спасибо! Пришлите, пожалуйста, фотографию
-                    животного (1 шт.).
-                    """;
-            sendPlainText(chatId, text);
         } else if (message.startsWith("2)")) {
+            Carer carer = this.carerService.findCarerByChatId(chatId);
+            DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
+            dailyReport.setDogDiet(message);
+            this.dailyReportService.addDailyReport(dailyReport);
             String text = """
                     Спасибо! Информация сохранена.
                     Пожалуйста, пришлите информация об
@@ -332,6 +348,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     """;
             sendPlainText(chatId, text);
         } else if (message.startsWith("3)")) {
+            Carer carer = this.carerService.findCarerByChatId(chatId);
+            DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
+            dailyReport.setDogDiet(message);
+            this.dailyReportService.addDailyReport(dailyReport);
             String text = """
                     Спасибо! Информация сохранена.
                     Пожалуйста, пришлите информацию об
@@ -341,6 +361,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     """;
             sendPlainText(chatId, text);
         } else if (message.startsWith("4)")) {
+            Carer carer = this.carerService.findCarerByChatId(chatId);
+            DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
+            dailyReport.setDogDiet(message);
+            this.dailyReportService.addDailyReport(dailyReport);
             String text = "Спасибо! Отчет за " +
                     LocalDate.now() + " сохранен!";
             sendPlainText(chatId, text);
@@ -524,5 +548,59 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private String getExtensions(String fileName) {
         return fileName.substring(fileName.lastIndexOf(".") + 1);
+    }
+
+    @Scheduled(cron = "0 0 14 * * ?")
+    public void sendNotification() {
+        List<Agreement> agreements = this.agreementService.findAllAgreementsByDate(LocalDate.now());
+        agreements.forEach(agreement -> {
+            this.timer = new Timer();
+            this.timer.scheduleAtFixedRate(new TimerTask() {
+                @Autowired
+                private VolunteerChatRepository volunteerChatRepository;
+                @Autowired
+                private CarerRepository carerRepository;
+
+                private void sendMessage(long chatId, String text) {
+                    telegramBot.execute(new SendMessage(chatId, text));
+                }
+
+                @Override
+                public void run() {
+                    List<Carer> carers = this.carerRepository.findAll();
+                    carers.forEach(carer -> {
+                        List<DailyReport> dailyReports = carer.getDailyReports();
+                        int dailyReportSize = dailyReports.size();
+                        DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
+
+                        if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
+                            sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                    "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
+                        }
+                        if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
+                            sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                    "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
+                            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
+                                    .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
+                                    .getTelegramChatId(),
+                                    "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
+                                            "[User link](tg://user?id=" + carer.getChatId() + " )");
+                            sendMessageForVolunteer.parseMode(ParseMode.Markdown);
+                            telegramBot.execute(sendMessageForVolunteer);
+                        }
+                    });
+                }
+            }, Date.from(agreement.getConclusionDate()
+                    .plusDays(1)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()),
+                    1000 * 60 * 60 * 24L);
+        });
+        List<Carer> carers = this.carerRepository.findAll();
+        carers.forEach(carer -> {
+            if (carer.getDog().isTaken() && !carer.getDog().isOnProbation()) {
+                this.timer.cancel();
+            }
+        });
     }
 }

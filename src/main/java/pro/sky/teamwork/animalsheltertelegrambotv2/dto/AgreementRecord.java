@@ -1,20 +1,23 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-
 import java.time.LocalDate;
 
 public class AgreementRecord {
-
+    private long id;
     private String number;
     private LocalDate conclusionDate;
-    private Carer carer;
-
+    private long carerId;
 
     public AgreementRecord() {
-
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getNumber() {
         return number;
@@ -32,11 +35,11 @@ public class AgreementRecord {
         this.conclusionDate = conclusionDate;
     }
 
-    public Carer getCarer() {
-        return carer;
+    public long getCarerId() {
+        return carerId;
     }
 
-    public void setCarer(Carer carer) {
-        this.carer = carer;
+    public void setCarerId(long carerId) {
+        this.carerId = carerId;
     }
 }

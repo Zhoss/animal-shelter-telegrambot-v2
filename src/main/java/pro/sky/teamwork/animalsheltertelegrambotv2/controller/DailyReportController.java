@@ -11,7 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 
@@ -27,7 +31,6 @@ import java.util.List;
 @RequestMapping("/reports")
 public class DailyReportController {
     private final DailyReportService dailyReportService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DailyReportController.class);
 
     public DailyReportController(DailyReportService dailyReportService) {
         this.dailyReportService = dailyReportService;
@@ -50,10 +53,10 @@ public class DailyReportController {
             tags = "Отчет"
     )
     @GetMapping("/carer")
-    public ResponseEntity<List<DailyReport>> findDailyReportsByCarerId(
+    public ResponseEntity<List<DailyReportRecord>> findDailyReportsByCarerId(
             @Parameter(description = "ID опекуна",
                     example = "1") @RequestParam(name = "Идентификатор опекуна") Long carerId) {
-        List<DailyReport> dailyReportByCarer = dailyReportService.findDailyReportByCarer(carerId);
+        List<DailyReportRecord> dailyReportByCarer = dailyReportService.findDailyReportByCarer(carerId);
         return ResponseEntity.ok(dailyReportByCarer);
     }
 
@@ -74,19 +77,18 @@ public class DailyReportController {
             tags = "Отчет"
     )
     @GetMapping("/carer-date")
-    public ResponseEntity<DailyReport> findDailyReportsByCarerAndDate(
+    public ResponseEntity<DailyReportRecord> findDailyReportsByCarerAndDate(
             @RequestParam Long carerId,
             @RequestParam LocalDate reportDate
     ) {
-        LOGGER.info("Получение списка отчётов по опекуну и дате");
-        DailyReport dailyReportByCarerAndDate =
+        DailyReportRecord dailyReportByCarerAndDate =
                 dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
     }
 
     @GetMapping("/download-photo-by-date")
     public void downloadPhotoByByCarerIdAndDate(long carerId, LocalDate reportDate, HttpServletResponse response) {
-        DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
+        DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carerId, reportDate);
 
         Path path = Path.of(dailyReport.getFilePath());
 
