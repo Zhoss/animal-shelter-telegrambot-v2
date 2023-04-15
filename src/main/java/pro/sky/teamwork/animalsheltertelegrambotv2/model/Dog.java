@@ -31,8 +31,8 @@ public class Dog {
     private List<DailyReport> dailyReports;
 
     public Dog() {
-
     }
+
 
     public long getId() {
         return id;
