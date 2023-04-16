@@ -40,6 +40,14 @@ public class AgreementService {
         return modelMapper.mapToAgreementRecord(agreement);
     }
 
+    /**
+     * Метод создания договора.
+     * @param agreement модель класса Agreement
+     * @return создан договор
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.AgreementRepository
+     */
+    public Agreement createAgreement(Agreement agreement) {
+        return agreementRepository.save(agreement);
     @Transactional
     public AgreementRecord findAgreementById(long id) {
         Agreement agreement = agreementRepository.findById(id)

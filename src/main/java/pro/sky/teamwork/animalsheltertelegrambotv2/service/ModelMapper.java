@@ -27,6 +27,12 @@ public class ModelMapper {
         this.carerRepository = carerRepository;
     }
 
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param carer
+     * @return информацию внесенную через телеграм
+     */
     public CarerRecord mapToCarerRecord(Carer carer) {
         String[] fullName = carer.getFullName().split(" ");
         CarerRecord carerRecord = new CarerRecord();
@@ -64,6 +70,12 @@ public class ModelMapper {
         return dog;
     }
 
+    /**
+     * Метод занесения инфрмации в хранилище
+     *
+     * @param dog
+     * @return информацию внесенную через телеграм
+     */
     public DogRecord mapToDogRecord(Dog dog) {
         DogRecord dogRecord = new DogRecord();
         dogRecord.setId(dog.getId());

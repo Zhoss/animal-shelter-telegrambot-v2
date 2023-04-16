@@ -34,6 +34,36 @@ public class CarerController {
     }
 
     @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Добавляемый опекун",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Carer.class),
+                            examples = {
+                                    @ExampleObject(
+                                            value = "{\"id\": 0,"
+                                                    + "\"secondName\": \"Иванов\","
+                                                    + "\"firstName\": \"Иван\","
+                                                    + "\"patronymic\": \"Иванович\","
+                                                    + "\"age\": 30,"
+                                                    + "\"phoneNumber\": \"+7(999)1234567\""
+                                                    + "}"
+                                    )
+                            }
+                    )
+            ),
+            summary = "Добавление данных опекуна",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Carer added"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }, tags = "Опекун"
+    )
+    @PostMapping
+    public ResponseEntity<CarerRecord> addCarer(@RequestBody CarerRecord carerRecord) {
+        return ResponseEntity.ok(this.carerService.addCarer(carerRecord));
+    }
+
+    @Operation(
             summary = "Поиск опекуна по ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Carer added",

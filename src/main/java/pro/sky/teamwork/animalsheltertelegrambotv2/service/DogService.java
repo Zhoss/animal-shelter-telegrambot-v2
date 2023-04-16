@@ -101,6 +101,17 @@ public class DogService {
             this.dogRepository.deleteById(id);
         }
     }
+    /**
+     * Метод getAllDogs выводит список обо всех <b>собаках</b> внесенных в базу данных.
+     *
+     * @return найденные <b>собаки</b>.
+     */
+    public Collection<Dog> getAllDogs() {
+        LOGGER.debug("Collection all dogs:{}");
+        final var all = dogRepository.findAll();
+        LOGGER.debug("All dogs is{}", all);
+        return all;
+    }
 
     @Transactional
     public List<DogRecord> findAllDogs() {
