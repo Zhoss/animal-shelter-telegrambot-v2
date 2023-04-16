@@ -109,6 +109,8 @@ public class CarerService {
         }
     }
 
+
+
     /**
      * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
      *
@@ -146,5 +148,9 @@ public class CarerService {
         return this.carerRepository.findAll().stream()
                 .map(this.modelMapper::mapToCarerRecord)
                 .collect(Collectors.toList());
+    }
+
+    public Carer findCarerByDogId(long dogId) {
+        return carerRepository.findCarerByDogId(dogId);
     }
 }

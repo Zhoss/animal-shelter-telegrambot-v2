@@ -71,4 +71,8 @@ public class AgreementService {
                 .filter(e -> Objects.equals(e.getConclusionDate(), localDate))
                 .collect(Collectors.toList());
     }
+
+    public Agreement findAgreementByCarerId(long carerId) {
+        return agreementRepository.findAgreementByCarer_Id(carerId);
+    }
 }

@@ -22,12 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -41,6 +43,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,9 +64,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final AgreementService agreementService;
     private final VolunteerChatRepository volunteerChatRepository;
     private final CarerRepository carerRepository;
+
+    private DogService dogService;
     private Timer timer;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, CarerService carerService, DailyReportService dailyReportService, AgreementService agreementService, VolunteerChatRepository volunteerChatRepository, CarerRepository carerRepository) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot,
+                                      CarerService carerService,
+                                      DailyReportService dailyReportService,
+                                      AgreementService agreementService,
+                                      VolunteerChatRepository volunteerChatRepository,
+                                      CarerRepository carerRepository,
+                                      DogService dogService) {
+        this.dogService = dogService;
         this.telegramBot = telegramBot;
         this.carerService = carerService;
         this.dailyReportService = dailyReportService;
@@ -141,7 +153,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     }
                 } else if (message != null) {
                     if (message.startsWith("/")) {
-                        handleCommand(message, chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
+                        handleCommand(message,
+                                chatId,
+                                clientId,
+                                clientFirstName,
+                                clientLastName,
+                                volunteerChatId);
                     } else {
                         handleTextMessage(message, chatId, volunteerChatId);
                     }
@@ -225,7 +242,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (command.equals(Command.SEND_REPORT_MENU_COMMAND.getCommand())) {
             sendReportCommandMenu(chatId);
         } else if (command.equals(Command.CALL_VOLUNTEER_COMMAND.getCommand())) {
-            sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
+            sendCallVolunteerCommand(chatId,
+                    clientId,
+                    clientFirstName,
+                    clientLastName,
+                    volunteerChatId);
         } else if (command.equals(Command.SHELTER_MAIN_INFO_COMMAND.getCommand())) {
             String text = "Основная информация о приюте"; //требуемая информация
             sendPlainText(chatId, text);
@@ -556,44 +577,44 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         agreements.forEach(agreement -> {
             this.timer = new Timer();
             this.timer.scheduleAtFixedRate(new TimerTask() {
-                @Autowired
-                private VolunteerChatRepository volunteerChatRepository;
-                @Autowired
-                private CarerRepository carerRepository;
+                                               @Autowired
+                                               private VolunteerChatRepository volunteerChatRepository;
+                                               @Autowired
+                                               private CarerRepository carerRepository;
 
-                private void sendMessage(long chatId, String text) {
-                    telegramBot.execute(new SendMessage(chatId, text));
-                }
+                                               private void sendMessage(long chatId, String text) {
+                                                   telegramBot.execute(new SendMessage(chatId, text));
+                                               }
 
-                @Override
-                public void run() {
-                    List<Carer> carers = this.carerRepository.findAll();
-                    carers.forEach(carer -> {
-                        List<DailyReport> dailyReports = carer.getDailyReports();
-                        int dailyReportSize = dailyReports.size();
-                        DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
+                                               @Override
+                                               public void run() {
+                                                   List<Carer> carers = this.carerRepository.findAll();
+                                                   carers.forEach(carer -> {
+                                                       List<DailyReport> dailyReports = carer.getDailyReports();
+                                                       int dailyReportSize = dailyReports.size();
+                                                       DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
 
-                        if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
-                            sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                    "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
-                        }
-                        if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
-                            sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                    "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
-                            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
-                                    .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
-                                    .getTelegramChatId(),
-                                    "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
-                                            "[User link](tg://user?id=" + carer.getChatId() + " )");
-                            sendMessageForVolunteer.parseMode(ParseMode.Markdown);
-                            telegramBot.execute(sendMessageForVolunteer);
-                        }
-                    });
-                }
-            }, Date.from(agreement.getConclusionDate()
-                    .plusDays(1)
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()),
+                                                       if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
+                                                           sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                                                   "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
+                                                       }
+                                                       if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
+                                                           sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                                                   "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
+                                                           SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
+                                                                   .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
+                                                                   .getTelegramChatId(),
+                                                                   "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
+                                                                           "[User link](tg://user?id=" + carer.getChatId() + " )");
+                                                           sendMessageForVolunteer.parseMode(ParseMode.Markdown);
+                                                           telegramBot.execute(sendMessageForVolunteer);
+                                                       }
+                                                   });
+                                               }
+                                           }, Date.from(agreement.getConclusionDate()
+                            .plusDays(1)
+                            .atStartOfDay(ZoneId.systemDefault())
+                            .toInstant()),
                     1000 * 60 * 60 * 24L);
         });
         List<Carer> carers = this.carerRepository.findAll();
@@ -603,4 +624,40 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             }
         });
     }
+
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
+    public void checks() {
+        List<Dog> allDogs = dogService.getAllDogs();
+        for (Dog dog : allDogs) {
+            if (dog.isOnProbation()) {
+                long dogId = dog.getId();
+                Carer carer = carerService.findCarerByDogId(dogId);
+                long carerId = carer.getId();
+                var agreement = agreementService.findAgreementByCarerId(carerId);
+                var conclusionDate = agreement.getConclusionDate();
+
+                if (!conclusionDate.plusDays(30L).isBefore(LocalDate.now())) {
+                    var carerChatId = carer.getChatId();
+                    SendMessage sendMessageForVolunteer = new SendMessage(volunteerChatRepository.findById(1L),
+                            "У клиента"+"[User link](tg://user?id="+ carerChatId + "истёк испытательный срок.\n" +
+                                    "Просьба решить пройден ли испытательный срок клиентом\n" +
+                                    "и сообщить ему.");
+                    telegramBot.execute(sendMessageForVolunteer);
+                }
+            }
+        }
+    }
+
+//    public void changeProbationState() {
+//        dog
+//    }
+
+    public void sendMessageForVolunteer(long volunteerChatId, String text) {
+        telegramBot.execute(new SendMessage(volunteerChatId, text));
+    }
+
+//    public long getVolunteerChatId() {
+//        volunteerChatRepository.findByTelegramChatId()
+//    }
 }

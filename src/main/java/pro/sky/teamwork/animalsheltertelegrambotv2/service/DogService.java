@@ -108,4 +108,7 @@ public class DogService {
                 .map(this.modelMapper::mapToDogRecord)
                 .collect(Collectors.toList());
     }
+     public List<Dog> getAllDogs() {
+         return dogRepository.findAll();
+     }
 }
