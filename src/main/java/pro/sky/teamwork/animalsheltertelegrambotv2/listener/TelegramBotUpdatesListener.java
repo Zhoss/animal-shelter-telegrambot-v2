@@ -211,7 +211,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Метод по обработке только команд (начинающихся с "/").
      */
-
     private void handleCommand(String command,
                                long chatId,
                                long clientId,
@@ -362,7 +361,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("3)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId);
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
-            dailyReport.setDogDiet(message);
+            dailyReport.setDogHealth(message);
             this.dailyReportService.addDailyReport(dailyReport);
             String text = """
                     Спасибо! Информация сохранена.
@@ -375,7 +374,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("4)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId);
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
-            dailyReport.setDogDiet(message);
+            dailyReport.setDogBehavior(message);
             this.dailyReportService.addDailyReport(dailyReport);
             String text = "Спасибо! Отчет за " +
                     LocalDate.now() + " сохранен!";

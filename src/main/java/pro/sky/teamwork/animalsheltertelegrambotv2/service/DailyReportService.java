@@ -71,7 +71,7 @@ public class DailyReportService {
     @Transactional(readOnly = true)
     public DailyReport findDailyReportByCarerIdAndDate(Long carerId, LocalDate reportDate) {
         if (carerId > 0 && reportDate != null) {
-            LOGGER.info("Was invoked method to find daily report by carer id and the specified date = " +
+            LOGGER.info("Was invoked method to find daily report by carer id = " + carerId + " and the specified date = " +
                     reportDate + " from Telegram bot");
             return this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
         } else {
