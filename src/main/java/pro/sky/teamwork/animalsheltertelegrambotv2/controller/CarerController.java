@@ -9,10 +9,20 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/carer")
@@ -49,7 +59,7 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PostMapping
-    public ResponseEntity<Carer> addCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> addCarer(@RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.addCarer(carerRecord));
     }
 
@@ -69,8 +79,9 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Carer> findCarer(@Parameter(description = "ID Опекуна")
-                                           @PathVariable long id) {
+    public ResponseEntity<CarerRecord> findCarer(
+            @Parameter(description = "ID Опекуна")
+            @PathVariable long id) {
         return ResponseEntity.ok(this.carerService.findCarer(id));
     }
 
@@ -87,7 +98,9 @@ public class CarerController {
                                                     + "\"firstName\": \"Иван\","
                                                     + "\"patronymic\": \"Иванович\","
                                                     + "\"age\": 30,"
-                                                    + "\"phoneNumber\": \"+7(999)1234567\""
+                                                    + "\"phoneNumber\": \"+7(999)1234567\","
+                                                    + "\"passportNumber\": \"1234 123456\","
+                                                    + "\"dogId\": \"1\""
                                                     + "}"
                                     )
                             }
@@ -99,16 +112,47 @@ public class CarerController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }, tags = "Опекун"
     )
-    @PutMapping
-    public ResponseEntity<Carer> editCarer(@RequestBody CarerRecord carerRecord) {
+    @PatchMapping
+    public ResponseEntity<CarerRecord> editCarer(
+            @RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
 
+    @Operation(
+            summary = "Удаление записи об опекуне",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Carer information delete",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+            },
+            tags = "Опекун"
+    )
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCarer(@Parameter(description = "ID Опекуна")
-                                         @PathVariable long id) {
+    public ResponseEntity<?> deleteCarer(
+            @Parameter(description = "ID Опекуна")
+            @PathVariable long id) {
         this.carerService.deleteCarer(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Поиск опекуна по номеру телефона",
+            tags = "Опекун"
+    )
+    @GetMapping("/phone-number")
+    public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
+            @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
+            @RequestParam String phone) {
+        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone));
+    }
+
+    @Operation(
+            summary = "Поиск всех опекунов",
+            tags = "Опекун"
+    )
+    @GetMapping
+    public ResponseEntity<List<CarerRecord>> findAllCarers() {
+        return ResponseEntity.ok(this.carerService.findAllCarers());
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

@@ -1,5 +1,16 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+/**
+ * Клас описывающий поля для приема информации по <b> собаке </b> через Swagger.
+ * <br>Параметры:
+ * <br> long id
+ * <br> String name;
+ * <br> String breed;
+ * <br> String coatColor;
+ * <br> int age;
+ * <br> String features;
+ *
+ */
 public class DogRecord {
     private long id;
     private String name;
@@ -8,13 +19,8 @@ public class DogRecord {
     private int age;
     private String features;
 
-    public DogRecord(long id, String name, String breed, String coatColor, int age, String features) {
-        this.id = id;
-        this.name = name;
-        this.breed = breed;
-        this.coatColor = coatColor;
-        this.age = age;
-        this.features = features;
+    public DogRecord() {
+
     }
 
     public long getId() {

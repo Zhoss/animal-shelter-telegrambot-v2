@@ -1,29 +1,27 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * Класс описывающий логику и поля DailyReport
+ */
 @Entity
 @Table(name = "daily_reports")
 public class DailyReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
-    private String description;
-    @Lob
-    @Column(nullable = false)
-    private byte[] photo;
     @Column(name = "file_path", nullable = false)
     private String filePath;
     @Column(name = "file_size", nullable = false)
@@ -38,17 +36,12 @@ public class DailyReport {
     private String dogHealth;
     @Column(name = "dog_behavior", nullable = false)
     private String dogBehavior;
-//    @Column(name = "carer_id", nullable = false, insertable = false,updatable = false)
-//    private Long carerId;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "carer_id", referencedColumnName = "id")
+    @JsonBackReference
     private Carer carer;
-    @OneToOne
-    @JoinColumn(name = "dog_id", referencedColumnName = "id")
-    private Dog dog;
 
     public DailyReport() {
-
     }
 
     public long getId() {
@@ -57,22 +50,6 @@ public class DailyReport {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public byte[] getPhoto() {
-        return photo;
-    }
-
-    public void setPhoto(byte[] photo) {
-        this.photo = photo;
     }
 
     public String getFilePath() {
@@ -131,6 +108,14 @@ public class DailyReport {
         this.dogBehavior = dogBehavior;
     }
 
+    public Carer getCarer() {
+        return carer;
+    }
+
+    public void setCarer(Carer carer) {
+        this.carer = carer;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -148,6 +133,9 @@ public class DailyReport {
     public String toString() {
         return "Ежедневный отчет: " +
                 "id = " + id +
-                ", описание: " + description;
+                ", дата отчет = " + reportDate +
+                ", рацион собаки = " + dogDiet +
+                ", общее самочувствие собаки = " + dogHealth +
+                ", изменение в поведении собаки = " + dogBehavior;
     }
 }

@@ -1,5 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -8,7 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -23,17 +26,26 @@ public class Carer {
     private int birthYear;
     @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
+    @Column(name = "chat_id", nullable = false)
+    private long chatId;
+    @Column(name = "passport_number")
+    private String passportNumber;
     @OneToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
-    @OneToOne
-    @JoinColumn(name = "agreement_id", referencedColumnName = "id")
-    private Agreement agreement;
-    @OneToOne(mappedBy = "carer")
-    private DailyReport dailyReport;
+    @OneToMany(mappedBy = "carer")
+    @JsonManagedReference
+    private List<DailyReport> dailyReports;
 
     public Carer() {
+    }
 
+    public long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 
     public long getId() {
@@ -49,7 +61,11 @@ public class Carer {
     }
 
     public void setFullName(String fullName) {
-        this.fullName = fullName;
+        if (!fullName.isEmpty() && !fullName.isBlank()) {
+            this.fullName = fullName;
+        } else {
+            throw new IllegalArgumentException("Требуется указать корректное ФИО опекуна");
+        }
     }
 
     public int getBirthYear() {
@@ -65,7 +81,39 @@ public class Carer {
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+        if (!phoneNumber.isEmpty() && !phoneNumber.isBlank()) {
+            this.phoneNumber = phoneNumber;
+        } else {
+            throw new IllegalArgumentException("Требуется указать корректный номер телефона опекуна");
+        }
+    }
+
+    public String getPassportNumber() {
+        return passportNumber;
+    }
+
+    public void setPassportNumber(String passportNumber) {
+        if (passportNumber != null && !passportNumber.isEmpty() && !passportNumber.isBlank()) {
+            this.passportNumber = passportNumber;
+        } else {
+            throw new IllegalArgumentException("Требуется указать корректный номер паспорта опекуна");
+        }
+    }
+
+    public Dog getDog() {
+        return dog;
+    }
+
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
+
+    public List<DailyReport> getDailyReports() {
+        return dailyReports;
+    }
+
+    public void setDailyReports(List<DailyReport> dailyReports) {
+        this.dailyReports = dailyReports;
     }
 
     @Override
@@ -73,20 +121,22 @@ public class Carer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Carer carer = (Carer) o;
-        return id == carer.id;
+        return getId() == carer.getId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(getId());
     }
 
-    @Override
+        @Override
     public String toString() {
         return "Опекун: " +
                 "id = " + id +
                 ", ФИО = " + fullName +
                 ", год рождения = " + birthYear +
-                ", контактный телефон = " + phoneNumber;
+                ", контактный телефон = " + phoneNumber +
+                ", id чата = " + chatId +
+                ", номер паспорта = " + passportNumber;
     }
 }

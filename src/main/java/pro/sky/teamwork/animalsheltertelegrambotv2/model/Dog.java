@@ -1,8 +1,14 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
 
 import java.util.Objects;
+
 @Entity
 @Table(name = "dogs")
 public class Dog {
@@ -22,14 +28,10 @@ public class Dog {
     private boolean taken;
     @Column(name = "on_probation", nullable = false)
     private boolean onProbation;
-    @OneToOne(mappedBy = "dog")
-    private Carer carer;
-    @OneToOne(mappedBy = "dog")
-    private DailyReport dailyReport;
 
     public Dog() {
-
     }
+
 
     public long getId() {
         return id;
@@ -116,12 +118,12 @@ public class Dog {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Dog dog = (Dog) o;
-        return id == dog.id;
+        return getId() == dog.getId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(getId());
     }
 
     @Override
