@@ -28,6 +28,7 @@ public class CarerService {
 
     /**
      * Добавление информации по опекуну через телеграм бота.
+     *
      * @param fullName    {@link Carer#setFullName(String)}
      * @param age         {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
      * @param phoneNumber {@link Carer#setPhoneNumber(String)}
@@ -87,6 +88,7 @@ public class CarerService {
     /**
      * Внесение изменений в информацию <b>опекуна</b>
      * //     * @param carerRecord класс DTO
+     *
      * @return измененная информация об опекуне.
      * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
@@ -117,7 +119,6 @@ public class CarerService {
             throw new IllegalArgumentException("Требуется указать опекуна для изменения");
         }
     }
-
 
 
     /**
@@ -167,7 +168,9 @@ public class CarerService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Carer findCarerByDogId(long dogId) {
-        return carerRepository.findCarerByDogId(dogId);
+        return carerRepository.findCarerByDogId(dogId)
+                .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
     }
 }

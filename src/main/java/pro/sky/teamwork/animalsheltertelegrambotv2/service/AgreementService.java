@@ -119,7 +119,9 @@ public class AgreementService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Agreement findAgreementByCarerId(long carerId) {
-        return agreementRepository.findAgreementByCarer_Id(carerId);
+        return agreementRepository.findAgreementByCarer_Id(carerId)
+                .orElseThrow();
     }
 }

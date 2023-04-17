@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord2;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord3;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
@@ -85,6 +87,23 @@ public class DogService {
         }
     }
 
+    @Transactional
+    public Dog editDog2(DogRecord2 dogRecord2) {
+        Dog dog = dogRepository.findById(dogRecord2.getId())
+                .orElseThrow(DogNotFoundException::new);
+        dog.setOnProbation(dogRecord2.isOnProbation());
+        dogRepository.save(dog);
+        return dog;
+    }
+
+    public Dog editDog3(DogRecord3 dogRecord3) {
+        Dog dog = dogRepository.findById(dogRecord3.getId())
+                .orElseThrow(DogNotFoundException::new);
+        dog.setTaken(dogRecord3.isTaken());
+        dogRepository.save(dog);
+        return dog;
+    }
+
     /**
      * Удаление информации по собаке. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
      *
@@ -103,7 +122,6 @@ public class DogService {
             this.dogRepository.deleteById(id);
         }
     }
-
     @Transactional(readOnly = true)
     public List<DogRecord> findAllDogs() {
         List<Dog> dogRecords = this.dogRepository.findAll();
@@ -117,6 +135,7 @@ public class DogService {
             return new ArrayList<>();
         }
     }
+
      public List<Dog> getAllDogs() {
          return dogRepository.findAll();
      }

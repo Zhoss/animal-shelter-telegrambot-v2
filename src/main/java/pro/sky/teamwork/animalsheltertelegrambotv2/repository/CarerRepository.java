@@ -10,5 +10,5 @@ public interface CarerRepository extends JpaRepository<Carer, Long> {
 
     Optional<Carer> findCarerByChatId(long chatId);
 
-    Carer findCarerByDogId(long dog);
+    Optional<Carer> findCarerByDogId(long dog);
 }

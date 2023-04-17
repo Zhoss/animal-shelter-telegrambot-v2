@@ -18,10 +18,13 @@ public class DogRecord {
     private String coatColor;
     private int age;
     private String features;
+//    private boolean onProbation;
 
     public DogRecord() {
 
     }
+
+
 
     public long getId() {
         return id;

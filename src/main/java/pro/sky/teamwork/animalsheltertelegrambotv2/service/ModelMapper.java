@@ -2,10 +2,7 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
@@ -74,6 +71,7 @@ public class ModelMapper {
         dog.setFeatures(dogRecord.getFeatures());
         return dog;
     }
+
 
     /**
      * Метод занесения информации в хранилище

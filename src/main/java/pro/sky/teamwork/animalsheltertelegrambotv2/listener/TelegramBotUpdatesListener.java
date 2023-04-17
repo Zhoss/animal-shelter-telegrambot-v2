@@ -79,14 +79,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                       DailyReportService dailyReportService,
                                       AgreementService agreementService,
                                       VolunteerChatRepository volunteerChatRepository,
-                                      CarerRepository carerRepository) {
-    public TelegramBotUpdatesListener(TelegramBot telegramBot,
-                                      CarerService carerService,
-                                      DailyReportService dailyReportService,
-                                      AgreementService agreementService,
-                                      VolunteerChatRepository volunteerChatRepository,
                                       CarerRepository carerRepository,
                                       DogService dogService) {
+
         this.dogService = dogService;
         this.telegramBot = telegramBot;
         this.carerService = carerService;
@@ -629,7 +624,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
-    public void checks() {
+    public void notionForVolunteerThatProbationIsEnded() {
         List<Dog> allDogs = dogService.getAllDogs();
         for (Dog dog : allDogs) {
             if (dog.isOnProbation()) {
@@ -641,8 +636,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                 if (!conclusionDate.plusDays(30L).isBefore(LocalDate.now())) {
                     var carerChatId = carer.getChatId();
-                    SendMessage sendMessageForVolunteer = new SendMessage(volunteerChatRepository.findById(1L),
-                            "У клиента"+"[User link](tg://user?id="+ carerChatId + "истёк испытательный срок.\n" +
+                    SendMessage sendMessageForVolunteer = new SendMessage(
+                            volunteerChatRepository.findById(1L),
+                            "У клиента" + "[User link](tg://user?id=" + carerChatId +
+                                    "истёк испытательный срок.\n" +
                                     "Просьба решить пройден ли испытательный срок клиентом\n" +
                                     "и сообщить ему.");
                     telegramBot.execute(sendMessageForVolunteer);
@@ -651,15 +648,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-//    public void changeProbationState() {
-//        dog
-//    }
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.HOURS)
+    public void notionForCarerThatProbationIsEnded() {
+        List<Dog> allDogs = dogService.getAllDogs();
+        for (Dog dog : allDogs) {
+            if (dog.isTaken() && !dog.isOnProbation()) {
+                Carer carer = carerService.findCarerByDogId(dog.getId());
+                SendMessage sendMessageForCarer = new SendMessage(
+                        carer.getChatId(), "Поздравляем! Вы прошли испытательный срок.\n" +
+                        "Просьба зайти в приют, оформить документы.");
+                telegramBot.execute(sendMessageForCarer);
+            }
 
-    public void sendMessageForVolunteer(long volunteerChatId, String text) {
-        telegramBot.execute(new SendMessage(volunteerChatId, text));
+        }
     }
-
-//    public long getVolunteerChatId() {
-//        volunteerChatRepository.findByTelegramChatId()
-//    }
 }
