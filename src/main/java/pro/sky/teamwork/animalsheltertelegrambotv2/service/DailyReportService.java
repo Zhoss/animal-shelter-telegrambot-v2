@@ -80,6 +80,7 @@ public class DailyReportService {
         }
     }
 
+    @Transactional
     public void addDailyReport(DailyReport dailyReport) {
         if (dailyReport != null) {
             LOGGER.info("Was invoked method for adding daily report from Telegram bot");
