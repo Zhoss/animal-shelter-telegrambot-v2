@@ -42,6 +42,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Date;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -68,6 +74,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private DogService dogService;
     private Timer timer;
 
+    public TelegramBotUpdatesListener(TelegramBot telegramBot,
+                                      CarerService carerService,
+                                      DailyReportService dailyReportService,
+                                      AgreementService agreementService,
+                                      VolunteerChatRepository volunteerChatRepository,
+                                      CarerRepository carerRepository) {
     public TelegramBotUpdatesListener(TelegramBot telegramBot,
                                       CarerService carerService,
                                       DailyReportService dailyReportService,
@@ -172,52 +184,60 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Метод для сохранения фотографии
+     *
      * @param update расширение на класс {@link Update} телеграм бота
      * @param chatId идентификатор чата, в котором выводятся кнопки
      */
     private void savePhotoFromCarer(Update update, long chatId) {
         Carer carer = this.carerService.findCarerByChatId(chatId);
         if (carer != null) {
-            PhotoSize[] photo = update.message().photo();
-            GetFile request = new GetFile(photo[photo.length - 1].fileId());
-            GetFileResponse getFileResponse = this.telegramBot.execute(request);
-            com.pengrad.telegrambot.model.File file = getFileResponse.file();
-            String fullPath = this.telegramBot.getFullFilePath(file);
+            DailyReport foundDailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
+            if (foundDailyReport == null) {
+                PhotoSize[] photo = update.message().photo();
+                GetFile request = new GetFile(photo[photo.length - 1].fileId());
+                GetFileResponse getFileResponse = this.telegramBot.execute(request);
+                com.pengrad.telegrambot.model.File file = getFileResponse.file();
+                String fullPath = this.telegramBot.getFullFilePath(file);
 
-            String mediaType = getExtensions(Objects.requireNonNull(fullPath));
+                String mediaType = getExtensions(Objects.requireNonNull(fullPath));
 
-            Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
-                    LocalDate.now() + "." + mediaType);
-            try {
-                URL url = new URL(fullPath);
-                Files.createDirectories(filePath.getParent());
-                Files.deleteIfExists(filePath);
-                try (InputStream is = url.openStream();
-                     OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
-                     BufferedInputStream bis = new BufferedInputStream(is, 1024);
-                     BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
-                ) {
-                    bis.transferTo(bos);
+                Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
+                        LocalDate.now() + "." + mediaType);
+                try {
+                    URL url = new URL(fullPath);
+                    Files.createDirectories(filePath.getParent());
+                    Files.deleteIfExists(filePath);
+                    try (InputStream is = url.openStream();
+                         OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
+                         BufferedInputStream bis = new BufferedInputStream(is, 1024);
+                         BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
+                    ) {
+                        bis.transferTo(bos);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                DailyReport dailyReport = new DailyReport();
+                dailyReport.setCarer(carer);
+                dailyReport.setFilePath(filePath.toString());
+                dailyReport.setFileSize(file.fileSize());
+                dailyReport.setMediaType("image/" + mediaType);
+                dailyReport.setReportDate(LocalDate.now());
+                this.dailyReportService.addDailyReport(dailyReport);
+
+                String text = """
+                        Спасибо! Информация сохранена.
+                        Пожалуйста, пришлите информацию о
+                        рационе животного.
+                        ВАЖНО! Сообщение должно начинаться с "2)"!
+                        """;
+                sendPlainText(chatId, text);
+            } else {
+                String text = "Отчет за сегодняшнюю дату " + LocalDate.now() + " уже сохранен";
+                sendPlainText(chatId, text);
             }
 
-            DailyReport dailyReport = new DailyReport();
-            dailyReport.setCarer(carer);
-            dailyReport.setFilePath(filePath.toString());
-            dailyReport.setFileSize(file.fileSize());
-            dailyReport.setMediaType("image/" + mediaType);
-            dailyReport.setReportDate(LocalDate.now());
-            this.dailyReportService.addDailyReport(dailyReport);
-
-            String text = """
-                    Спасибо! Информация сохранена.
-                    Пожалуйста, пришлите информацию о
-                    рационе животного.
-                    ВАЖНО! Сообщение должно начинаться с "2)"!
-                    """;
-            sendPlainText(chatId, text);
         } else {
             String text = "Опекун не найден. Если Вы являетесь опекуном, пожалуйста, " +
                     "пришлите фото с телефона, с которого Вы оставляли свои контактные данные";
@@ -234,104 +254,74 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                String clientFirstName,
                                String clientLastName,
                                long volunteerChatId) {
-        if (command.equals(Command.START_COMMAND.getCommand())) {
-            String text = """
-                    Добрый день! Меня зовут AnimalShelterBot. Я отвечаю на
-                    популярные вопросы о том, что нужно знать и уметь,
-                    чтобы забрать собаку из приюта.
-                    """;
-            sendPlainText(chatId, text);
-            startCommandMenu(chatId);
-        } else if (command.equals(Command.SHELTER_INFO_COMMAND.getCommand())) {
-            shelterInfoCommandMenu(chatId);
-        } else if (command.equals(Command.TAKE_A_DOG_COMMAND.getCommand())) {
-            takeDogCommandMenu(chatId);
-        } else if (command.equals(Command.SEND_REPORT_MENU_COMMAND.getCommand())) {
-            sendReportCommandMenu(chatId);
-        } else if (command.equals(Command.CALL_VOLUNTEER_COMMAND.getCommand())) {
-            sendCallVolunteerCommand(chatId,
-                    clientId,
-                    clientFirstName,
-                    clientLastName,
-                    volunteerChatId);
-        } else if (command.equals(Command.SHELTER_MAIN_INFO_COMMAND.getCommand())) {
-            String text = "Основная информация о приюте"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.SHELTER_WORK_SCHEDULE_COMMAND.getCommand())) {
-            String text = """
-                    Расписание работы приюта:
-                    номер телефона:
-                    e-mail:
-                    """;
-            sendPlainText(chatId, text);
-            SendPhoto sendPhoto = new SendPhoto(chatId,
-                    new File("src/redaktirovat-kartu.png"));
-            telegramBot.execute(sendPhoto);
-        } else if (command.equals(Command.SHELTER_SAFETY_RECOMMENDATIONS_COMMAND.getCommand())) {
-            String text = "Общие рекомендации о технике безопасности на территории приюта"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.WRITE_CLIENT_CONTACT_COMMAND.getCommand())) {
-            String text = """
+        switch (Objects.requireNonNull(Command.findByStringCommand(command))) {
+            case START_COMMAND -> {
+                sendPlainText(chatId, """
+                        Добрый день! Меня зовут AnimalShelterBot. Я отвечаю на
+                        популярные вопросы о том, что нужно знать и уметь,
+                        чтобы забрать собаку из приюта.
+                        """);
+                startCommandMenu(chatId);
+            }
+            case SHELTER_INFO_COMMAND -> shelterInfoCommandMenu(chatId);
+            case TAKE_A_DOG_COMMAND -> takeDogCommandMenu(chatId);
+            case SEND_REPORT_MENU_COMMAND -> sendReportCommandMenu(chatId);
+            case CALL_VOLUNTEER_COMMAND ->
+                    sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
+            case SHELTER_MAIN_INFO_COMMAND -> sendPlainText(chatId, "Основная информация о приюте");
+            case SHELTER_WORK_SCHEDULE_COMMAND -> {
+                sendPlainText(chatId, """
+                        Расписание работы приюта:
+                        номер телефона:
+                        e-mail:
+                        """);
+                SendPhoto sendPhoto = new SendPhoto(chatId,
+                        new File("src/redaktirovat-kartu.png"));
+                telegramBot.execute(sendPhoto);
+            }
+            case SHELTER_SAFETY_RECOMMENDATIONS_COMMAND ->
+                    sendPlainText(chatId, "Общие рекомендации о технике безопасности на территории приюта");
+            case WRITE_CLIENT_CONTACT_COMMAND -> sendPlainText(chatId, """
                     Прошу написать Ваши Фамилию Имя Отчество
                     (напр., Иванов Иван Иванович)
                     и номер телефона в формате +7(ХХХ)ХХХХХХХ
-                    """;
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.BACK_COMMAND.getCommand())) {
-            startCommandMenu(chatId);
-        } else if (command.equals(Command.INTRODUCTION_TO_DOG_COMMAND.getCommand())) {
-            String text = "Правила знакомства с собакой до того, как можно забрать ее из приюта"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.TAKE_DOCUMENTS_LIST_COMMAND.getCommand())) {
-            String text = "Список документов, необходимых для того, чтобы взять собаку из приюта"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.TRANSFER_A_DOG_COMMAND.getCommand())) {
-            String text = "Список рекомендаций по транспортировке животного"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.ENVIRONMENT_FOR_PUPPY_COMMAND.getCommand())) {
-            String text = "Список рекомендаций по обустройству дома для щенка"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.ENVIRONMENT_FOR_DOG_COMMAND.getCommand())) {
-            String text = "Список рекомендаций по обустройству дома для взрослой собаки"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.ENVIRONMENT_FOR_LIMITED_DOG_COMMAND.getCommand())) {
-            String text = "Список рекомендаций по обустройству дома для собаки с ограниченными " +
-                    "возможностями (зрение, передвижение)"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.CYNOLOGIST_ADVICES_COMMAND.getCommand())) {
-            String text = "Советы кинолога по первичному общению с собакой"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.CYNOLOGIST_CONTACTS_COMMAND.getCommand())) {
-            String text = "Рекомендации по проверенным кинологам для дальнейшего обращения к ним"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.USUAL_REFUSALS_COMMAND.getCommand())) {
-            String text = "Список причин, почему могут отказать и не дать забрать собаку из приюта"; //требуемая информация
-            sendPlainText(chatId, text);
-        } else if (command.equals(Command.SEND_REPORT_COMMAND.getCommand())) {
-            String reportFormText = """
-                    Уважаемый опекун! В качестве отчета пошагово направляются следующие данные:
-                    1) Фото животного.
-                    2) Рацион животного.
-                    3) Общее самочувствие и привыкание к новому месту.
-                    4) Изменение в поведении: отказ от старых привычек, приобретение новых.
-                    """; //требуемая информация
-            String requestForPhoto = "Пожалуйста, пришлите фото животного (1 шт.)";
-            sendPlainText(chatId, reportFormText);
-            sendPlainText(chatId, requestForPhoto);
-        } else if (command.equals(Command.VOLUNTEER_CONFIRM_COMMAND.getCommand())) {
-            String text = "Спасибо за подтверждение заявки";
-            sendPlainText(chatId, text);
-        } else {
-            String text = "Неизвестная команда";
-            sendPlainText(chatId, text);
+                    """);
+            case BACK_COMMAND -> startCommandMenu(chatId);
+            case INTRODUCTION_TO_DOG_COMMAND ->
+                    sendPlainText(chatId, "Правила знакомства с собакой до того, как можно забрать ее из приюта");
+            case TAKE_DOCUMENTS_LIST_COMMAND ->
+                    sendPlainText(chatId, "Список документов, необходимых для того, чтобы взять собаку из приюта");
+            case TRANSFER_A_DOG_COMMAND -> sendPlainText(chatId, "Список рекомендаций по транспортировке животного");
+            case ENVIRONMENT_FOR_PUPPY_COMMAND ->
+                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для щенка");
+            case ENVIRONMENT_FOR_DOG_COMMAND ->
+                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для взрослой собаки");
+            case ENVIRONMENT_FOR_LIMITED_DOG_COMMAND ->
+                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для собаки с ограниченными " +
+                            "возможностями (зрение, передвижение)");
+            case CYNOLOGIST_ADVICES_COMMAND -> sendPlainText(chatId, "Советы кинолога по первичному общению с собакой");
+            case CYNOLOGIST_CONTACTS_COMMAND ->
+                    sendPlainText(chatId, "Рекомендации по проверенным кинологам для дальнейшего обращения к ним");
+            case USUAL_REFUSALS_COMMAND ->
+                    sendPlainText(chatId, "Список причин, почему могут отказать и не дать забрать собаку из приюта");
+            case SEND_REPORT_COMMAND -> {
+                sendPlainText(chatId, """
+                        Уважаемый опекун! В качестве отчета пошагово направляются следующие данные:
+                        1) Фото животного.
+                        2) Рацион животного.
+                        3) Общее самочувствие и привыкание к новому месту.
+                        4) Изменение в поведении: отказ от старых привычек, приобретение новых.
+                        """);
+                sendPlainText(chatId, "Пожалуйста, пришлите фото животного (1 шт.)");
+            }
+            case VOLUNTEER_CONFIRM_COMMAND -> sendPlainText(chatId, "Спасибо за подтверждение заявки");
+            default -> sendPlainText(chatId, "Неизвестная команда");
         }
     }
 
     /**
      * Метод по обработке обычных текстовых сообщений.
-     *
      */
-
     private void handleTextMessage(String message, long chatId, long volunteerChatId) {
         Pattern clientContactPattern = Pattern.compile(
                 "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
@@ -370,7 +360,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("2)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId);
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
-            dailyReport.setDogDiet(message);
+            dailyReport.setDogDiet(message.substring(2).trim());
             this.dailyReportService.addDailyReport(dailyReport);
             String text = """
                     Спасибо! Информация сохранена.
@@ -382,7 +372,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("3)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId);
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
-            dailyReport.setDogHealth(message);
+            dailyReport.setDogHealth(message.substring(2).trim());
             this.dailyReportService.addDailyReport(dailyReport);
             String text = """
                     Спасибо! Информация сохранена.
@@ -395,7 +385,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("4)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId);
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
-            dailyReport.setDogBehavior(message);
+            dailyReport.setDogBehavior(message.substring(2).trim());
             this.dailyReportService.addDailyReport(dailyReport);
             String text = "Спасибо! Отчет за " +
                     LocalDate.now() + " сохранен!";
@@ -587,42 +577,43 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         List<Agreement> agreements = this.agreementService.findAllAgreementsByDate(LocalDate.now());
         agreements.forEach(agreement -> {
             this.timer = new Timer();
-            this.timer.scheduleAtFixedRate(new TimerTask() {
-                                               @Autowired
-                                               private VolunteerChatRepository volunteerChatRepository;
-                                               @Autowired
-                                               private CarerRepository carerRepository;
+            this.timer.scheduleAtFixedRate(
+                    new TimerTask() {
+                        @Autowired
+                        private VolunteerChatRepository volunteerChatRepository;
+                        @Autowired
+                        private CarerRepository carerRepository;
 
-                                               private void sendMessage(long chatId, String text) {
-                                                   telegramBot.execute(new SendMessage(chatId, text));
-                                               }
+                        private void sendMessage(long chatId, String text) {
+                            telegramBot.execute(new SendMessage(chatId, text));
+                        }
 
-                                               @Override
-                                               public void run() {
-                                                   List<Carer> carers = this.carerRepository.findAll();
-                                                   carers.forEach(carer -> {
-                                                       List<DailyReport> dailyReports = carer.getDailyReports();
-                                                       int dailyReportSize = dailyReports.size();
-                                                       DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
+                        @Override
+                        public void run() {
+                            List<Carer> carers = this.carerRepository.findAll();
+                            carers.forEach(carer -> {
+                                List<DailyReport> dailyReports = carer.getDailyReports();
+                                int dailyReportSize = dailyReports.size();
+                                DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
 
-                                                       if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
-                                                           sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                                                   "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
-                                                       }
-                                                       if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
-                                                           sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                                                   "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
-                                                           SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
-                                                                   .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
-                                                                   .getTelegramChatId(),
-                                                                   "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
-                                                                           "[User link](tg://user?id=" + carer.getChatId() + " )");
-                                                           sendMessageForVolunteer.parseMode(ParseMode.Markdown);
-                                                           telegramBot.execute(sendMessageForVolunteer);
-                                                       }
-                                                   });
-                                               }
-                                           }, Date.from(agreement.getConclusionDate()
+                                if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
+                                    sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                            "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
+                                }
+                                if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
+                                    sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
+                                            "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
+                                    SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
+                                            .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
+                                            .getTelegramChatId(),
+                                            "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
+                                                    "[User link](tg://user?id=" + carer.getChatId() + " )");
+                                    sendMessageForVolunteer.parseMode(ParseMode.Markdown);
+                                    telegramBot.execute(sendMessageForVolunteer);
+                                }
+                            });
+                        }
+                    }, Date.from(agreement.getConclusionDate()
                             .plusDays(1)
                             .atStartOfDay(ZoneId.systemDefault())
                             .toInstant()),

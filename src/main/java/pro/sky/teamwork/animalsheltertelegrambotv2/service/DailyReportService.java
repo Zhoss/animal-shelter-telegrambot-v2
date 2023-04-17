@@ -90,4 +90,15 @@ public class DailyReportService {
             throw new IllegalArgumentException("Input object 'dailyReport' is null");
         }
     }
+
+    @Transactional
+    public void deleteDailyReport(long id) {
+        if (id > 0) {
+            LOGGER.info("Was invoked method to delete carer");
+            this.dailyReportRepository.deleteById(id);
+        } else {
+            LOGGER.error("Input id = " + id + " for deleting daily report is incorrect");
+            throw new IllegalArgumentException("Требуется указать корректный id ежедневного отчета");
+        }
+    }
 }

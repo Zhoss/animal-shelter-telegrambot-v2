@@ -38,4 +38,13 @@ public enum Command {
     public String getDescription() {
         return description;
     }
+
+    public static Command findByStringCommand(String command) {
+        for (Command stringCommand : values()) {
+            if (stringCommand.getCommand().equals(command)) {
+                return stringCommand;
+            }
+        }
+        return null;
+    }
 }

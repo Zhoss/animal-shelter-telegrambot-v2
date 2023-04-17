@@ -90,11 +90,7 @@ public class Dog {
     }
 
     public void setFeatures(String features) {
-        if (!features.isEmpty() && !features.isBlank()) {
             this.features = features;
-        } else {
-            throw new IllegalArgumentException("Требуется указать особые приметы собаки");
-        }
     }
 
     public boolean isTaken() {
