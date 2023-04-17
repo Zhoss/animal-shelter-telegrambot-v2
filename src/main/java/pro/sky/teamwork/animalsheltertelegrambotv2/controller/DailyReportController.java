@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +34,8 @@ public class DailyReportController {
         this.dailyReportService = dailyReportService;
     }
 
-    @Operation(summary = "Поиск ежедневных отчётов по ID опекуна",
+    @Operation(
+            summary = "Поиск всех ежедневных отчётов опекуна по ID опекуна",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -50,17 +49,19 @@ public class DailyReportController {
                             }
                     )
             },
-            tags = "Отчет"
+            tags = "Ежедневный отчет"
     )
     @GetMapping("/carer")
     public ResponseEntity<List<DailyReportRecord>> findDailyReportsByCarerId(
-            @Parameter(description = "ID опекуна",
-                    example = "1") @RequestParam(name = "Идентификатор опекуна") Long carerId) {
-        List<DailyReportRecord> dailyReportByCarer = dailyReportService.findDailyReportByCarer(carerId);
+            @Parameter(description = "ID опекуна", example = "1")
+            @RequestParam(name = "Идентификатор опекуна") Long carerId) {
+        List<DailyReportRecord> dailyReportByCarer = dailyReportService
+                .findDailyReportsByCarer(carerId);
         return ResponseEntity.ok(dailyReportByCarer);
     }
 
-    @Operation(summary = "Поиск ежедневных отчётов по ID опекуна и дате отчета",
+    @Operation(
+            summary = "Поиск ежедневных отчётов по ID опекуна и дате отчета",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -74,21 +75,25 @@ public class DailyReportController {
                             }
                     )
             },
-            tags = "Отчет"
+            tags = "Ежедневный отчет"
     )
     @GetMapping("/carer-date")
     public ResponseEntity<DailyReportRecord> findDailyReportsByCarerAndDate(
             @RequestParam Long carerId,
-            @RequestParam LocalDate reportDate
-    ) {
-        DailyReportRecord dailyReportByCarerAndDate =
-                dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
+            @RequestParam LocalDate reportDate) {
+        DailyReportRecord dailyReportByCarerAndDate = dailyReportService
+                .findDailyReportByCarerAndDate(carerId, reportDate);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
     }
 
+    @Operation(
+            summary = "Загрузка фотографии из отчета, найденного по ID опекуна и дате",
+            tags = "Ежедневный отчет"
+    )
     @GetMapping("/download-photo-by-date")
     public void downloadPhotoByByCarerIdAndDate(long carerId, LocalDate reportDate, HttpServletResponse response) {
-        DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carerId, reportDate);
+        DailyReport dailyReport = this.dailyReportService
+                .findDailyReportByCarerIdAndDate(carerId, reportDate);
 
         Path path = Path.of(dailyReport.getFilePath());
 

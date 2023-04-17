@@ -59,7 +59,7 @@ public class DogController {
     }
 
     @Operation(
-            summary = "Поиск информации о собаке",
+            summary = "Поиск информации о собаке по ID собаки",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Dog added",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -74,7 +74,7 @@ public class DogController {
             tags = "Собака"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<DogRecord> findDog(@Parameter(description = " Введите ID Собаки") @PathVariable long id) {
+    public ResponseEntity<DogRecord> findDog(@Parameter(description = "Введите ID Собаки") @PathVariable long id) {
         return ResponseEntity.ok(this.dogService.findDog(id));
     }
 
@@ -109,7 +109,7 @@ public class DogController {
     }
 
     @Operation(
-            summary = "Удаление записи о собаке",
+            summary = "Удаление записи о собаке по ID собаки",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Dog information delete",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -124,6 +124,10 @@ public class DogController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "Получение данных о всех собаках",
+            tags = "Собака"
+    )
     @GetMapping
     public ResponseEntity<List<DogRecord>> findAllDogs() {
         return ResponseEntity.ok(this.dogService.findAllDogs());

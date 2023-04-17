@@ -9,8 +9,8 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.exception.DogNotFoundExceptio
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DogService {
@@ -35,7 +35,8 @@ public class DogService {
     public DogRecord addDog(DogRecord dogRecord) {
         if (dogRecord != null) {
             LOGGER.info("Was invoked method for adding dog");
-            Dog dog = this.dogRepository.save(this.modelMapper.mapToDogEntity(dogRecord));
+            Dog dog = this.dogRepository.save(
+                    this.modelMapper.mapToDogEntity(dogRecord));
             return this.modelMapper.mapToDogRecord(dog);
         } else {
             LOGGER.error("Input object 'dogRecord' is null");
@@ -51,7 +52,7 @@ public class DogService {
      * @throws DogNotFoundException Если нет информации в БД.
      * @see org.springframework.data.jpa.repository.JpaRepository
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public DogRecord findDog(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for getting dog is incorrect");
@@ -75,11 +76,12 @@ public class DogService {
     public DogRecord editDog(DogRecord dogRecord) {
         if (dogRecord != null) {
             LOGGER.info("Was invoked method to edit dog");
-            Dog dog = this.dogRepository.save(this.modelMapper.mapToDogEntity(dogRecord));
+            Dog dog = this.dogRepository.save(
+                    this.modelMapper.mapToDogEntity(dogRecord));
             return this.modelMapper.mapToDogRecord(dog);
         } else {
             LOGGER.error("Input object 'dogRecord' is null");
-            throw new IllegalArgumentException("Требуется добавить собаку");
+            throw new IllegalArgumentException("Требуется указать собаку для изменения");
         }
     }
 
@@ -102,11 +104,18 @@ public class DogService {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<DogRecord> findAllDogs() {
-        return this.dogRepository.findAll().stream()
-                .map(this.modelMapper::mapToDogRecord)
-                .collect(Collectors.toList());
+        List<Dog> dogRecords = this.dogRepository.findAll();
+        if (!dogRecords.isEmpty()) {
+            LOGGER.info("Was invoked method to find all dogs");
+            return dogRecords.stream()
+                    .map(this.modelMapper::mapToDogRecord)
+                    .toList();
+        } else {
+            LOGGER.info("Was invoked method to find all dogs, but dogs were not found");
+            return new ArrayList<>();
+        }
     }
      public List<Dog> getAllDogs() {
          return dogRepository.findAll();
