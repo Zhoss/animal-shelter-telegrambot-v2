@@ -12,11 +12,11 @@ import jakarta.persistence.Column;
 public class VolunteerChat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    private long id;
     @Column(nullable = false)
-    String name;
+    private String name;
     @Column(name = "telegram_chat_id", nullable = false)
-    long telegramChatId;
+    private long telegramChatId;
 
     public VolunteerChat() {
     }

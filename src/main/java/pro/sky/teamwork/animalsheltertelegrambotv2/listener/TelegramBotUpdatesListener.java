@@ -337,7 +337,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             } else {
                 carer.setFullName(clientName);
                 carer.setPhoneNumber(clientPhoneNumber);
-                Carer updatedCarer = this.carerService.addCarer(carer);
+                Carer updatedCarer = this.carerService.saveCarer(carer);
                 String textForVolunteer = "Прошу связаться с клиентом " + updatedCarer.getFullName() + " по телефону "
                         + updatedCarer.getPhoneNumber();
                 String textForClient = """

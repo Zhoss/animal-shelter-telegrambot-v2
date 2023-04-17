@@ -113,12 +113,13 @@ public class CarerController {
             }, tags = "Опекун"
     )
     @PatchMapping
-    public ResponseEntity<CarerRecord> editCarer(@RequestBody CarerRecord carerRecord) {
+    public ResponseEntity<CarerRecord> editCarer(
+            @RequestBody CarerRecord carerRecord) {
         return ResponseEntity.ok(this.carerService.editCarer(carerRecord));
     }
 
     @Operation(
-            summary = "Удаление записи о опекуне",
+            summary = "Удаление записи об опекуне",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Carer information delete",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -127,8 +128,9 @@ public class CarerController {
             tags = "Опекун"
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCarer(@Parameter(description = "ID Опекуна")
-                                         @PathVariable long id) {
+    public ResponseEntity<?> deleteCarer(
+            @Parameter(description = "ID Опекуна")
+            @PathVariable long id) {
         this.carerService.deleteCarer(id);
         return ResponseEntity.ok().build();
     }
@@ -144,9 +146,13 @@ public class CarerController {
         return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone));
     }
 
+    @Operation(
+            summary = "Поиск всех опекунов",
+            tags = "Опекун"
+    )
     @GetMapping
     public ResponseEntity<List<CarerRecord>> findAllCarers() {
-        return ResponseEntity.ok(this.carerService.findAll());
+        return ResponseEntity.ok(this.carerService.findAllCarers());
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

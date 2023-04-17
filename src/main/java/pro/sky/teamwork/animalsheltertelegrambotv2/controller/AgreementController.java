@@ -1,10 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,39 +26,41 @@ public class AgreementController {
     public AgreementController(AgreementService agreementService) {
         this.agreementService = agreementService;
     }
-    @Operation(
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Добавляемый договор",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = Agreement.class)
-                    )
-            ),
-            summary = "Внесение изменений в данных договора",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Agreement added"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }, tags = "Договор"
-    )
 
+    @Operation(
+            summary = "Добавление договора о принятии",
+            tags = "Договор о принятии"
+    )
     @PostMapping
     public ResponseEntity<AgreementRecord> addAgreement(
             @RequestBody AgreementRecord agreementRecord) {
         return ResponseEntity.ok(agreementService.addAgreement(agreementRecord));
     }
 
+    @Operation(
+            summary = "Получение договора о принятии по ID договора",
+            tags = "Договор о принятии"
+    )
     @GetMapping("/{id}")
     public ResponseEntity<AgreementRecord> findAgreementById(
             @PathVariable Long id) {
         return ResponseEntity.ok(agreementService.findAgreementById(id));
     }
 
+    @Operation(
+            summary = "Изменение (полное) договора о принятии",
+            tags = "Договор о принятии"
+    )
     @PutMapping
     public ResponseEntity<AgreementRecord> editAgreement(
             @RequestBody AgreementRecord agreementRecord) {
         return ResponseEntity.ok(agreementService.editAgreement(agreementRecord));
     }
 
+    @Operation(
+            summary = "Удаление договора о принятии по ID договора",
+            tags = "Договор о принятии"
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAgreementById(
             @PathVariable long id) {
@@ -70,6 +68,10 @@ public class AgreementController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "Получение всех договоров о принятии",
+            tags = "Договор о принятии"
+    )
     @GetMapping
     public ResponseEntity<List<AgreementRecord>> findAllAgreements() {
         return ResponseEntity.ok(this.agreementService.findAllAgreements());

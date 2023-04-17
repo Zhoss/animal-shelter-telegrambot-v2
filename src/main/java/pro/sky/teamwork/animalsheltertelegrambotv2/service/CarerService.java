@@ -10,10 +10,10 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class CarerService {
@@ -54,10 +54,12 @@ public class CarerService {
     }
 
     @Transactional
-    public Carer addCarer(Carer carer) {
+    public Carer saveCarer(Carer carer) {
         if (carer != null) {
+            LOGGER.info("Was invoked method for saving carer from Telegram bot");
             return this.carerRepository.save(carer);
         } else {
+            LOGGER.error("Input object 'carer' is null");
             throw new IllegalArgumentException("Требуется добавить опекуна");
         }
     }
@@ -70,7 +72,7 @@ public class CarerService {
      * @throws CarerNotFoundException если опекун с таким идентификационным номером (id) не найден
      * @see org.springframework.data.jpa.repository.JpaRepository#findById(Object)
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public CarerRecord findCarer(long id) {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for getting carer is incorrect");
@@ -101,10 +103,16 @@ public class CarerService {
      * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public Carer findCarerByChatId(long chatId) {
-        return this.carerRepository.findCarerByChatId(chatId)
-                .orElse(null);
+        if (chatId != 0) {
+            LOGGER.info("Was invoked method to find carer by chat id");
+            return this.carerRepository.findCarerByChatId(chatId)
+                    .orElse(null);
+        } else {
+            LOGGER.error("Input chat id = " + chatId + " for getting carer is incorrect");
+            throw new IllegalArgumentException("Требуется указать корректный id чата опекуна");
+        }
     }
 
     @Transactional
@@ -118,7 +126,7 @@ public class CarerService {
             return this.modelMapper.mapToCarerRecord(carer);
         } else {
             LOGGER.error("Input object 'carerRecord' is null");
-            throw new IllegalArgumentException("Требуется добавить опекуна");
+            throw new IllegalArgumentException("Требуется указать опекуна для изменения");
         }
     }
 
@@ -140,7 +148,7 @@ public class CarerService {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public CarerRecord findCarerByPhoneNumber(String phoneNumber) {
         LOGGER.info("Getting Carer by his phone number");
         Pattern pattern = Pattern.compile("^(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$");
@@ -150,14 +158,22 @@ public class CarerService {
                     .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
             return this.modelMapper.mapToCarerRecord(carer);
         } else {
+            LOGGER.error("Input phone number = " + phoneNumber + " is incorrect");
             throw new IllegalArgumentException("Введите номер телефона в соответствие с примером");
         }
     }
 
-    @Transactional
-    public List<CarerRecord> findAll() {
-        return this.carerRepository.findAll().stream()
-                .map(this.modelMapper::mapToCarerRecord)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<CarerRecord> findAllCarers() {
+        List<Carer> carerRecords = this.carerRepository.findAll();
+        if (!carerRecords.isEmpty()) {
+            LOGGER.info("Was invoked method to find all carers");
+            return carerRecords.stream()
+                    .map(this.modelMapper::mapToCarerRecord)
+                    .toList();
+        } else {
+            LOGGER.info("Was invoked method to find all carers, but carers were not found");
+            return new ArrayList<>();
+        }
     }
 }
