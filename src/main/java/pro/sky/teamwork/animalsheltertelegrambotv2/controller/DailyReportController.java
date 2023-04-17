@@ -11,8 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
@@ -106,5 +109,19 @@ public class DailyReportController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    @Operation(
+            summary = "Удаление отчета по ID отчета",
+            tags = "Ежедневный отчет"
+    )
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteDailyReport(@PathVariable long id) {
+        this.dailyReportService.deleteDailyReport(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 }

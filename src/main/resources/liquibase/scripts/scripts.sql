@@ -39,9 +39,9 @@ CREATE TABLE daily_reports
     file_size    BIGINT       NOT NULL CHECK (file_size > 0),
     media_type   VARCHAR(255) NOT NULL,
     report_date  DATE         NOT NULL,
-    dog_diet     TEXT         NOT NULL,
-    dog_health   TEXT         NOT NULL,
-    dog_behavior TEXT         NOT NULL,
+    dog_diet     TEXT,
+    dog_health   TEXT,
+    dog_behavior TEXT,
     carer_id     BIGINT CHECK (carer_id > 0) REFERENCES carers (id)
 );
 
