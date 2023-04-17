@@ -153,6 +153,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
+    /**
+     * Метод для сохранения фотографии
+     * @param update расширение на класс {@link Update} телеграм бота
+     * @param chatId идентификатор чата, в котором выводятся кнопки
+     */
     private void savePhotoFromCarer(Update update, long chatId) {
         Carer carer = this.carerService.findCarerByChatId(chatId);
         if (carer != null) {
@@ -203,7 +208,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    //метод по обработке только команд (начинающихся с "/")
+    /**
+     * Метод по обработке только команд (начинающихся с "/").
+     */
+
     private void handleCommand(String command,
                                long chatId,
                                long clientId,
@@ -299,7 +307,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    //метод по обработке обычных текстовых сообщений
+    /**
+     * Метод по обработке обычных текстовых сообщений.
+     *
+     */
+
     private void handleTextMessage(String message, long chatId, long volunteerChatId) {
         Pattern clientContactPattern = Pattern.compile(
                 "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
@@ -383,7 +395,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * запрос по <b>callbackData</b>,
      * в ином случае прожимается кнопка соответствующей команды.
      *
-     * @param chatId
+     * @param chatId идентификатор чата, в котором выводятся кнопки
      */
     private void startCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
@@ -410,7 +422,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * по <b>callbackData</b>,
      * в ином случае прожимается кнопка соответствующей команды.
      *
-     * @param chatId
+     * @param chatId идентификатор чата, в котором выводятся кнопки
      */
     private void shelterInfoCommandMenu(long chatId) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(

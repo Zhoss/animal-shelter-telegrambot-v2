@@ -32,6 +32,7 @@ public class Dog {
     public Dog() {
     }
 
+
     public long getId() {
         return id;
     }

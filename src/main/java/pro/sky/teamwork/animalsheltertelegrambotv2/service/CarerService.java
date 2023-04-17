@@ -66,6 +66,7 @@ public class CarerService {
 
     /**
      * Поиск информации по опекуну через id. Используется {@link org.springframework.data.jpa.repository.JpaRepository#findById(Object)}
+     *
      * @param id - идентификационный номер опекуна
      * @return найдена информация по опекуну
      * @throws CarerNotFoundException если опекун с таким идентификационным номером (id) не найден
@@ -81,6 +82,18 @@ public class CarerService {
         Carer carer = this.carerRepository.findById(id).
                 orElseThrow(() -> new CarerNotFoundException("Опекун с id = " + id + " не найден"));
         return this.modelMapper.mapToCarerRecord(carer);
+    }
+
+    /**
+     * Нахождение опекуна по номеру договора.
+     *
+     * @param agreementNumber номер договора
+     * @return информацию по номеру договора
+     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#findCarerByAgreementNumber(String)
+     */
+    @Transactional
+    public Carer findCarer(String agreementNumber) {
+        return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
     }
 
     /**

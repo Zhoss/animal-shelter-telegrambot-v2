@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 
 import java.util.List;
