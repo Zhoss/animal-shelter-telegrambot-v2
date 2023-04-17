@@ -43,7 +43,12 @@ public class ModelMapper {
         carerRecord.setAge(LocalDate.now().getYear() - carer.getBirthYear());
         carerRecord.setPhoneNumber(carer.getPhoneNumber());
         carerRecord.setPassportNumber(carer.getPassportNumber());
-        carerRecord.setDogId(carer.getDog().getId());
+        Dog dog = carer.getDog();
+        if (dog != null) {
+            carerRecord.setDogId(carer.getDog().getId());
+        } else {
+            carerRecord.setDogId(0L);
+        }
         return carerRecord;
     }
 
