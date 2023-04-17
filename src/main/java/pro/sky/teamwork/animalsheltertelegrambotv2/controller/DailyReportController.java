@@ -53,9 +53,10 @@ public class DailyReportController {
     )
     @GetMapping("/carer")
     public ResponseEntity<List<DailyReportRecord>> findDailyReportsByCarerId(
-            @Parameter(description = "ID опекуна",
-                    example = "1") @RequestParam(name = "Идентификатор опекуна") Long carerId) {
-        List<DailyReportRecord> dailyReportByCarer = dailyReportService.findDailyReportsByCarer(carerId);
+            @Parameter(description = "ID опекуна", example = "1")
+            @RequestParam(name = "Идентификатор опекуна") Long carerId) {
+        List<DailyReportRecord> dailyReportByCarer = dailyReportService
+                .findDailyReportsByCarer(carerId);
         return ResponseEntity.ok(dailyReportByCarer);
     }
 
@@ -79,10 +80,9 @@ public class DailyReportController {
     @GetMapping("/carer-date")
     public ResponseEntity<DailyReportRecord> findDailyReportsByCarerAndDate(
             @RequestParam Long carerId,
-            @RequestParam LocalDate reportDate
-    ) {
-        DailyReportRecord dailyReportByCarerAndDate =
-                dailyReportService.findDailyReportByCarerAndDate(carerId, reportDate);
+            @RequestParam LocalDate reportDate) {
+        DailyReportRecord dailyReportByCarerAndDate = dailyReportService
+                .findDailyReportByCarerAndDate(carerId, reportDate);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
     }
 
@@ -92,7 +92,8 @@ public class DailyReportController {
     )
     @GetMapping("/download-photo-by-date")
     public void downloadPhotoByByCarerIdAndDate(long carerId, LocalDate reportDate, HttpServletResponse response) {
-        DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carerId, reportDate);
+        DailyReport dailyReport = this.dailyReportService
+                .findDailyReportByCarerIdAndDate(carerId, reportDate);
 
         Path path = Path.of(dailyReport.getFilePath());
 

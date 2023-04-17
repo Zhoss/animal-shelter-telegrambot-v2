@@ -31,7 +31,7 @@ public class ModelMapper {
      * Метод занесения инфрмации в хранилище
      *
      * @param carer
-     * @return информацию внесенную через телеграм
+     * @return информацию, внесенную через телеграм
      */
     public CarerRecord mapToCarerRecord(Carer carer) {
         String[] fullName = carer.getFullName().split(" ");
@@ -71,10 +71,10 @@ public class ModelMapper {
     }
 
     /**
-     * Метод занесения инфрмации в хранилище
+     * Метод занесения информации в хранилище
      *
      * @param dog
-     * @return информацию внесенную через телеграм
+     * @return информацию, внесенную через телеграм
      */
     public DogRecord mapToDogRecord(Dog dog) {
         DogRecord dogRecord = new DogRecord();

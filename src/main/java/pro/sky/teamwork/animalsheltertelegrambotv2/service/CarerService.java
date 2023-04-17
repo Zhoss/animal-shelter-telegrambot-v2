@@ -85,18 +85,6 @@ public class CarerService {
     }
 
     /**
-     * Нахождение опекуна по номеру договора.
-     *
-     * @param agreementNumber номер договора
-     * @return информацию по номеру договора
-     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository#findCarerByAgreementNumber(String)
-     */
-    @Transactional
-    public Carer findCarer(String agreementNumber) {
-        return this.carerRepository.findCarerByAgreementNumber(agreementNumber);
-    }
-
-    /**
      * Внесение изменений в информацию <b>опекуна</b>
      * //     * @param carerRecord класс DTO
      * @return измененная информация об опекуне.
