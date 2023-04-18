@@ -9,16 +9,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord2;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord3;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
 
@@ -127,7 +121,7 @@ public class DogController {
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDog(@Parameter(description = " Введите ID Собаки для удаления")
-                                           @PathVariable long id) {
+                                       @PathVariable long id) {
         this.dogService.deleteDog(id);
         return ResponseEntity.ok().build();
     }
@@ -141,8 +135,29 @@ public class DogController {
         return ResponseEntity.ok(this.dogService.findAllDogs());
     }
 
+    @Operation(
+            summary = "Новый - Изменение состояния поля \" На испытательном сроке\"",
+            tags = "Собака"
+    )
+    @PatchMapping("/")
+    public ResponseEntity<Dog> editDog(
+            @RequestBody DogRecord2 dogRecord2) {
+        return ResponseEntity.ok(dogService.editDog2(dogRecord2));
+    }
+
+    @Operation(
+            summary = "Новый - Изменение состояния поля \" Забран из приюта\"",
+            tags = "Собака")
+
+    @PatchMapping("")
+    public ResponseEntity<Dog> editDog(
+            @RequestBody DogRecord3 dogRecord3) {
+        return ResponseEntity.ok(dogService.editDog3(dogRecord3));
+    }
+
     @ExceptionHandler(value = IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }

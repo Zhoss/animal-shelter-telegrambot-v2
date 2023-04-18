@@ -28,6 +28,7 @@ public class CarerService {
 
     /**
      * Добавление информации по опекуну через телеграм бота.
+     *
      * @param fullName    {@link Carer#setFullName(String)}
      * @param age         {@link Carer#setBirthYear(int)} - преобразовывает полученную дату рождения в возраст.
      * @param phoneNumber {@link Carer#setPhoneNumber(String)}
@@ -87,6 +88,7 @@ public class CarerService {
     /**
      * Внесение изменений в информацию <b>опекуна</b>
      * //     * @param carerRecord класс DTO
+     *
      * @return измененная информация об опекуне.
      * @throws IllegalArgumentException Если поля <b>carerRecord</b> пустые (null)
      * @see CarerRecord
@@ -117,6 +119,7 @@ public class CarerService {
             throw new IllegalArgumentException("Требуется указать опекуна для изменения");
         }
     }
+
 
     /**
      * Удаление информации по опекуну. Используется {@link org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)}
@@ -163,5 +166,11 @@ public class CarerService {
             LOGGER.info("Was invoked method to find all carers, but carers were not found");
             return new ArrayList<>();
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Carer findCarerByDogId(long dogId) {
+        return carerRepository.findCarerByDogId(dogId)
+                .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
     }
 }

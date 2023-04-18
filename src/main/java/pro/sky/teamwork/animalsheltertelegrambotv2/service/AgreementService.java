@@ -118,4 +118,10 @@ public class AgreementService {
             throw new IllegalArgumentException("Требуется указать корректную дату");
         }
     }
+
+    @Transactional(readOnly = true)
+    public Agreement findAgreementByCarerId(long carerId) {
+        return agreementRepository.findAgreementByCarer_Id(carerId)
+                .orElseThrow();
+    }
 }

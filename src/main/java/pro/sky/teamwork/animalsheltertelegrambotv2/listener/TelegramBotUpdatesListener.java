@@ -22,12 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -46,6 +48,8 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Date;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +70,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final AgreementService agreementService;
     private final VolunteerChatRepository volunteerChatRepository;
     private final CarerRepository carerRepository;
+
+    private DogService dogService;
     private Timer timer;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot,
@@ -73,7 +79,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                       DailyReportService dailyReportService,
                                       AgreementService agreementService,
                                       VolunteerChatRepository volunteerChatRepository,
-                                      CarerRepository carerRepository) {
+                                      CarerRepository carerRepository,
+                                      DogService dogService) {
+
+        this.dogService = dogService;
         this.telegramBot = telegramBot;
         this.carerService = carerService;
         this.dailyReportService = dailyReportService;
@@ -151,7 +160,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     }
                 } else if (message != null) {
                     if (message.startsWith("/")) {
-                        handleCommand(message, chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
+                        handleCommand(message,
+                                chatId,
+                                clientId,
+                                clientFirstName,
+                                clientLastName,
+                                volunteerChatId);
                     } else {
                         handleTextMessage(message, chatId, volunteerChatId);
                     }
@@ -606,5 +620,46 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 this.timer.cancel();
             }
         });
+    }
+
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
+    public void notionForVolunteerThatProbationIsEnded() {
+        List<Dog> allDogs = dogService.getAllDogs();
+        for (Dog dog : allDogs) {
+            if (dog.isOnProbation()) {
+                long dogId = dog.getId();
+                Carer carer = carerService.findCarerByDogId(dogId);
+                long carerId = carer.getId();
+                var agreement = agreementService.findAgreementByCarerId(carerId);
+                var conclusionDate = agreement.getConclusionDate();
+
+                if (!conclusionDate.plusDays(30L).isBefore(LocalDate.now())) {
+                    var carerChatId = carer.getChatId();
+                    SendMessage sendMessageForVolunteer = new SendMessage(
+                            volunteerChatRepository.findById(1L),
+                            "У клиента" + "[User link](tg://user?id=" + carerChatId +
+                                    "истёк испытательный срок.\n" +
+                                    "Просьба решить пройден ли испытательный срок клиентом\n" +
+                                    "и сообщить ему.");
+                    telegramBot.execute(sendMessageForVolunteer);
+                }
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.HOURS)
+    public void notionForCarerThatProbationIsEnded() {
+        List<Dog> allDogs = dogService.getAllDogs();
+        for (Dog dog : allDogs) {
+            if (dog.isTaken() && !dog.isOnProbation()) {
+                Carer carer = carerService.findCarerByDogId(dog.getId());
+                SendMessage sendMessageForCarer = new SendMessage(
+                        carer.getChatId(), "Поздравляем! Вы прошли испытательный срок.\n" +
+                        "Просьба зайти в приют, оформить документы.");
+                telegramBot.execute(sendMessageForCarer);
+            }
+
+        }
     }
 }
