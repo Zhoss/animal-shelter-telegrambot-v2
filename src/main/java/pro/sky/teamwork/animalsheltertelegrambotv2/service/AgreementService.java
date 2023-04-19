@@ -13,7 +13,6 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class AgreementService {
@@ -100,16 +99,17 @@ public class AgreementService {
     }
 
     @Transactional(readOnly = true)
-    public List<Agreement> findAllAgreementsByDate(LocalDate localDate) {
+    public List<Agreement> findAllAgreementsWithProbationByDate(LocalDate localDate) {
         if (localDate != null) {
             List<Agreement> agreements = this.agreementRepository.findAll().stream()
-                    .filter(e -> Objects.equals(e.getConclusionDate(), localDate))
+                    .filter(e -> localDate.isBefore(e.getProbationEndData()))
                     .toList();
             if (!agreements.isEmpty()) {
-                LOGGER.info("Was invoked method to find all agreements for the specified date = " + localDate);
+                LOGGER.info("Was invoked method to find all agreements with probation for the specified date = " +
+                        localDate);
                 return agreements;
             } else {
-                LOGGER.info("Was invoked method to find all agreements for the specified date = " +
+                LOGGER.info("Was invoked method to find all agreements with probation for the specified date = " +
                         localDate + ", but agreements were not found");
                 return new ArrayList<>();
             }
@@ -120,8 +120,8 @@ public class AgreementService {
     }
 
     @Transactional(readOnly = true)
-    public Agreement findAgreementByCarerId(long carerId) {
-        return agreementRepository.findAgreementByCarer_Id(carerId)
-                .orElseThrow();
+    public List<Agreement> findAgreements() {
+        LOGGER.info("Was invoked method to find all agreements from Timer");
+        return this.agreementRepository.findAll();
     }
 }

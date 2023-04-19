@@ -90,6 +90,19 @@ public class DailyReportController {
     }
 
     @Operation(
+            summary = "Поиск ежедневных отчётов по дате отчета",
+            tags = "Ежедневный отчет"
+    )
+    @GetMapping("/date")
+    public ResponseEntity<List<DailyReportRecord>> findDailyReportsByDate(
+            @Parameter(description = "Дата отчета", example = "2023-01-01")
+            @RequestParam(name = "Дата отчета") LocalDate localDate) {
+        List<DailyReportRecord> dailyReportsByDate = dailyReportService
+                .findDailyReportsByDate(localDate);
+        return ResponseEntity.ok(dailyReportsByDate);
+    }
+
+    @Operation(
             summary = "Загрузка фотографии из отчета, найденного по ID опекуна и дате",
             tags = "Ежедневный отчет"
     )

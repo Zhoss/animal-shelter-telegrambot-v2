@@ -11,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord2;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord3;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
 
@@ -136,23 +134,24 @@ public class DogController {
     }
 
     @Operation(
-            summary = "Новый - Изменение состояния поля \" На испытательном сроке\"",
+            summary = "Изменение состояния \"На испытательном сроке\"",
             tags = "Собака"
     )
-    @PatchMapping("/")
-    public ResponseEntity<Dog> editDog(
-            @RequestBody DogRecord2 dogRecord2) {
-        return ResponseEntity.ok(dogService.editDog2(dogRecord2));
+    @PatchMapping("/is-taken/{id}")
+    public ResponseEntity<?> changeIsTakenStatus(@PathVariable long id,
+                                                 @RequestParam boolean isTaken) {
+        this.dogService.changeIsTakenStatus(id, isTaken);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(
-            summary = "Новый - Изменение состояния поля \" Забран из приюта\"",
+            summary = "Изменение состояния \"Взят из приюта\"",
             tags = "Собака")
-
-    @PatchMapping("")
-    public ResponseEntity<Dog> editDog(
-            @RequestBody DogRecord3 dogRecord3) {
-        return ResponseEntity.ok(dogService.editDog3(dogRecord3));
+    @PatchMapping("/on-probation/{id}")
+    public ResponseEntity<?> changeOnProbationStatus(@PathVariable long id,
+                                                     @RequestParam boolean onProbation) {
+        this.dogService.changeOnProbationStatus(id, onProbation);
+        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

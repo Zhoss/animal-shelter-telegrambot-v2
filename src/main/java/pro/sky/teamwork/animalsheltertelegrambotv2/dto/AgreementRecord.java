@@ -6,6 +6,7 @@ public class AgreementRecord {
     private long id;
     private String number;
     private LocalDate conclusionDate;
+    private LocalDate probationEndData;
     private long carerId;
 
     public AgreementRecord() {
@@ -33,6 +34,14 @@ public class AgreementRecord {
 
     public void setConclusionDate(LocalDate conclusionDate) {
         this.conclusionDate = conclusionDate;
+    }
+
+    public LocalDate getProbationEndData() {
+        return probationEndData;
+    }
+
+    public void setProbationEndData(LocalDate probationEndData) {
+        this.probationEndData = probationEndData;
     }
 
     public long getCarerId() {

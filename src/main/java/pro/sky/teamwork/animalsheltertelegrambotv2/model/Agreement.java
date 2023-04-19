@@ -21,6 +21,8 @@ public class Agreement {
     private String number;
     @Column(name = "conclusion_date", nullable = false)
     private LocalDate conclusionDate;
+    @Column(name = "probation_end_data", nullable = false)
+    private LocalDate probationEndData;
     @OneToOne
     @JoinColumn(name = "carer_id", referencedColumnName = "id")
     private Carer carer;
@@ -58,6 +60,14 @@ public class Agreement {
         } else {
             throw new IllegalArgumentException("Договор не может быть заключен с прошедшей датой");
         }
+    }
+
+    public LocalDate getProbationEndData() {
+        return probationEndData;
+    }
+
+    public void setProbationEndData(LocalDate probationEndData) {
+        this.probationEndData = probationEndData;
     }
 
     public Carer getCarer() {
