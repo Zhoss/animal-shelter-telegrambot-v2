@@ -18,18 +18,16 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.*;
+import pro.sky.teamwork.animalsheltertelegrambotv2.repository.AgreementRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
+import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
-import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
-import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -37,19 +35,13 @@ import java.io.OutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Date;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,27 +59,23 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final TelegramBot telegramBot;
     private final CarerService carerService;
     private final DailyReportService dailyReportService;
-    private final AgreementService agreementService;
     private final VolunteerChatRepository volunteerChatRepository;
+    private final AgreementRepository agreementRepository;
+    private final DogRepository dogRepository;
     private final CarerRepository carerRepository;
-
-    private DogService dogService;
-    private Timer timer;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot,
                                       CarerService carerService,
                                       DailyReportService dailyReportService,
-                                      AgreementService agreementService,
                                       VolunteerChatRepository volunteerChatRepository,
-                                      CarerRepository carerRepository,
-                                      DogService dogService) {
-
-        this.dogService = dogService;
+                                      AgreementRepository agreementRepository,
+                                      DogRepository dogRepository, CarerRepository carerRepository) {
         this.telegramBot = telegramBot;
         this.carerService = carerService;
         this.dailyReportService = dailyReportService;
-        this.agreementService = agreementService;
         this.volunteerChatRepository = volunteerChatRepository;
+        this.agreementRepository = agreementRepository;
+        this.dogRepository = dogRepository;
         this.carerRepository = carerRepository;
     }
 
@@ -143,17 +131,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         long newVolunteerChatId = update.message().chat().id();
                         if (!this.volunteerChatRepository.existsByTelegramChatId(newVolunteerChatId)) {
                             VolunteerChat volunteerChat = new VolunteerChat();
-                            volunteerChat.setId(1);
-                            volunteerChat.setName("Чат волонтеров " + LocalDate.now());
-                            volunteerChat.setTelegramChatId(newVolunteerChatId);
-                            this.volunteerChatRepository.save(volunteerChat);
+                            updateVolunteerChat(newVolunteerChatId, volunteerChat);
                         } else {
                             VolunteerChat volunteerChat = this.volunteerChatRepository
                                     .findByTelegramChatId(volunteerChatId);
-                            volunteerChat.setId(1);
-                            volunteerChat.setName("Чат волонтеров " + LocalDate.now());
-                            volunteerChat.setTelegramChatId(newVolunteerChatId);
-                            this.volunteerChatRepository.save(volunteerChat);
+                            updateVolunteerChat(newVolunteerChatId, volunteerChat);
                         }
                     } else if (update.message().photo() != null) {
                         savePhotoFromCarer(update, chatId);
@@ -177,6 +159,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
+    private void updateVolunteerChat(long newVolunteerChatId, VolunteerChat volunteerChat) {
+        volunteerChat.setId(1);
+        volunteerChat.setName("Чат волонтеров " + LocalDate.now());
+        volunteerChat.setTelegramChatId(newVolunteerChatId);
+        this.volunteerChatRepository.save(volunteerChat);
+    }
+
     /**
      * Метод для сохранения фотографии
      *
@@ -188,46 +177,45 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         if (carer != null) {
             DailyReport foundDailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now());
             if (foundDailyReport == null) {
-                PhotoSize[] photo = update.message().photo();
-                GetFile request = new GetFile(photo[photo.length - 1].fileId());
+                PhotoSize photo = update.message().photo()[update.message().photo().length - 1];
+                GetFile request = new GetFile(photo.fileId());
                 GetFileResponse getFileResponse = this.telegramBot.execute(request);
-                com.pengrad.telegrambot.model.File file = getFileResponse.file();
-                String fullPath = this.telegramBot.getFullFilePath(file);
+                if (getFileResponse.isOk()) {
+                    com.pengrad.telegrambot.model.File file = getFileResponse.file();
+                    String extension = org.springframework.util.StringUtils.getFilenameExtension(file.filePath());
 
-                String mediaType = getExtensions(Objects.requireNonNull(fullPath));
-
-                Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
-                        LocalDate.now() + "." + mediaType);
-                try {
-                    URL url = new URL(fullPath);
-                    Files.createDirectories(filePath.getParent());
-                    Files.deleteIfExists(filePath);
-                    try (InputStream is = url.openStream();
-                         OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
-                         BufferedInputStream bis = new BufferedInputStream(is, 1024);
-                         BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
-                    ) {
-                        bis.transferTo(bos);
+                    Path filePath = Path.of(photosDir + "/" + carer.getFullName(),
+                            LocalDate.now() + "." + extension);
+                    try {
+                        byte[] photos = telegramBot.getFileContent(file);
+                        Files.createDirectories(filePath.getParent());
+                        Files.deleteIfExists(filePath);
+                        try (InputStream is = new ByteArrayInputStream(photos);
+                             OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
+                             BufferedInputStream bis = new BufferedInputStream(is, 1024);
+                             BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
+                        ) {
+                            bis.transferTo(bos);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    DailyReport dailyReport = new DailyReport();
+                    dailyReport.setCarer(carer);
+                    dailyReport.setFilePath(filePath.toString());
+                    dailyReport.setFileSize(file.fileSize());
+                    dailyReport.setMediaType("image/" + extension);
+                    dailyReport.setReportDate(LocalDate.now());
+                    this.dailyReportService.addDailyReport(dailyReport);
+
+                    String text = """
+                            Спасибо! Информация сохранена.
+                            Пожалуйста, пришлите информацию о
+                            рационе животного.
+                            ВАЖНО! Сообщение должно начинаться с "2)"!
+                            """;
+                    sendPlainText(chatId, text);
                 }
-
-                DailyReport dailyReport = new DailyReport();
-                dailyReport.setCarer(carer);
-                dailyReport.setFilePath(filePath.toString());
-                dailyReport.setFileSize(file.fileSize());
-                dailyReport.setMediaType("image/" + mediaType);
-                dailyReport.setReportDate(LocalDate.now());
-                this.dailyReportService.addDailyReport(dailyReport);
-
-                String text = """
-                        Спасибо! Информация сохранена.
-                        Пожалуйста, пришлите информацию о
-                        рационе животного.
-                        ВАЖНО! Сообщение должно начинаться с "2)"!
-                        """;
-                sendPlainText(chatId, text);
             } else {
                 String text = "Отчет за сегодняшнюю дату " + LocalDate.now() + " уже сохранен";
                 sendPlainText(chatId, text);
@@ -249,68 +237,110 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                String clientFirstName,
                                String clientLastName,
                                long volunteerChatId) {
-        switch (Objects.requireNonNull(Command.findByStringCommand(command))) {
-            case START_COMMAND -> {
-                sendPlainText(chatId, """
-                        Добрый день! Меня зовут AnimalShelterBot. Я отвечаю на
-                        популярные вопросы о том, что нужно знать и уметь,
-                        чтобы забрать собаку из приюта.
+        Pattern probationPattern = Pattern.compile(
+                "^(/\\w+)(/)(\\d+)$"); //паттерн на команду из чата волонтеров с id опекуна
+        Matcher matcherProbation = probationPattern.matcher(command);
+        if (Command.commandExists(command)) {
+            switch (Objects.requireNonNull(Command.findByStringCommand(command))) {
+                case START_COMMAND -> {
+                    sendPlainText(chatId, """
+                            Добрый день! Меня зовут AnimalShelterBot. Я отвечаю на
+                            популярные вопросы о том, что нужно знать и уметь,
+                            чтобы забрать собаку из приюта.
+                            """);
+                    startCommandMenu(chatId);
+                }
+                case SHELTER_INFO_COMMAND -> shelterInfoCommandMenu(chatId);
+                case TAKE_A_DOG_COMMAND -> takeDogCommandMenu(chatId);
+                case SEND_REPORT_MENU_COMMAND -> sendReportCommandMenu(chatId);
+                case CALL_VOLUNTEER_COMMAND ->
+                        sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
+                case SHELTER_MAIN_INFO_COMMAND -> sendPlainText(chatId, "Основная информация о приюте");
+                case SHELTER_WORK_SCHEDULE_COMMAND -> {
+                    sendPlainText(chatId, """
+                            Расписание работы приюта:
+                            номер телефона:
+                            e-mail:
+                            """);
+                    SendPhoto sendPhoto = new SendPhoto(chatId,
+                            new File("src/redaktirovat-kartu.png"));
+                    telegramBot.execute(sendPhoto);
+                }
+                case SHELTER_SAFETY_RECOMMENDATIONS_COMMAND ->
+                        sendPlainText(chatId, "Общие рекомендации о технике безопасности на территории приюта");
+                case WRITE_CLIENT_CONTACT_COMMAND -> sendPlainText(chatId, """
+                        Прошу написать Ваши Фамилию Имя Отчество
+                        (напр., Иванов Иван Иванович)
+                        и номер телефона в формате +7(ХХХ)ХХХХХХХ
                         """);
-                startCommandMenu(chatId);
+                case BACK_COMMAND -> startCommandMenu(chatId);
+                case INTRODUCTION_TO_DOG_COMMAND ->
+                        sendPlainText(chatId, "Правила знакомства с собакой до того, как можно забрать ее из приюта");
+                case TAKE_DOCUMENTS_LIST_COMMAND ->
+                        sendPlainText(chatId, "Список документов, необходимых для того, чтобы взять собаку из приюта");
+                case TRANSFER_A_DOG_COMMAND ->
+                        sendPlainText(chatId, "Список рекомендаций по транспортировке животного");
+                case ENVIRONMENT_FOR_PUPPY_COMMAND ->
+                        sendPlainText(chatId, "Список рекомендаций по обустройству дома для щенка");
+                case ENVIRONMENT_FOR_DOG_COMMAND ->
+                        sendPlainText(chatId, "Список рекомендаций по обустройству дома для взрослой собаки");
+                case ENVIRONMENT_FOR_LIMITED_DOG_COMMAND ->
+                        sendPlainText(chatId, "Список рекомендаций по обустройству дома для собаки с ограниченными " +
+                                "возможностями (зрение, передвижение)");
+                case CYNOLOGIST_ADVICES_COMMAND ->
+                        sendPlainText(chatId, "Советы кинолога по первичному общению с собакой");
+                case CYNOLOGIST_CONTACTS_COMMAND ->
+                        sendPlainText(chatId, "Рекомендации по проверенным кинологам для дальнейшего обращения к ним");
+                case USUAL_REFUSALS_COMMAND ->
+                        sendPlainText(chatId, "Список причин, почему могут отказать и не дать забрать собаку из приюта");
+                case SEND_REPORT_COMMAND -> {
+                    sendPlainText(chatId, """
+                            Уважаемый опекун! В качестве отчета пошагово направляются следующие данные:
+                            1) Фото животного.
+                            2) Рацион животного.
+                            3) Общее самочувствие и привыкание к новому месту.
+                            4) Изменение в поведении: отказ от старых привычек, приобретение новых.
+                            """);
+                    sendPlainText(chatId, "Пожалуйста, пришлите фото животного (1 шт.)");
+                }
+                case VOLUNTEER_CONFIRM_COMMAND -> sendPlainText(chatId, "Спасибо за подтверждение заявки");
+                case NOTIFY_CARERS_COMMAND -> sendPlainText(chatId, "Пришлите, пожалуйста, id опекуна в формате \"id X\", " +
+                        "где X - сам идентификатор опекуна. Помните, нужно именно ответить (Reply) на данное сообщение");
             }
-            case SHELTER_INFO_COMMAND -> shelterInfoCommandMenu(chatId);
-            case TAKE_A_DOG_COMMAND -> takeDogCommandMenu(chatId);
-            case SEND_REPORT_MENU_COMMAND -> sendReportCommandMenu(chatId);
-            case CALL_VOLUNTEER_COMMAND ->
-                    sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
-            case SHELTER_MAIN_INFO_COMMAND -> sendPlainText(chatId, "Основная информация о приюте");
-            case SHELTER_WORK_SCHEDULE_COMMAND -> {
-                sendPlainText(chatId, """
-                        Расписание работы приюта:
-                        номер телефона:
-                        e-mail:
-                        """);
-                SendPhoto sendPhoto = new SendPhoto(chatId,
-                        new File("src/redaktirovat-kartu.png"));
-                telegramBot.execute(sendPhoto);
-            }
-            case SHELTER_SAFETY_RECOMMENDATIONS_COMMAND ->
-                    sendPlainText(chatId, "Общие рекомендации о технике безопасности на территории приюта");
-            case WRITE_CLIENT_CONTACT_COMMAND -> sendPlainText(chatId, """
-                    Прошу написать Ваши Фамилию Имя Отчество
-                    (напр., Иванов Иван Иванович)
-                    и номер телефона в формате +7(ХХХ)ХХХХХХХ
-                    """);
-            case BACK_COMMAND -> startCommandMenu(chatId);
-            case INTRODUCTION_TO_DOG_COMMAND ->
-                    sendPlainText(chatId, "Правила знакомства с собакой до того, как можно забрать ее из приюта");
-            case TAKE_DOCUMENTS_LIST_COMMAND ->
-                    sendPlainText(chatId, "Список документов, необходимых для того, чтобы взять собаку из приюта");
-            case TRANSFER_A_DOG_COMMAND -> sendPlainText(chatId, "Список рекомендаций по транспортировке животного");
-            case ENVIRONMENT_FOR_PUPPY_COMMAND ->
-                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для щенка");
-            case ENVIRONMENT_FOR_DOG_COMMAND ->
-                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для взрослой собаки");
-            case ENVIRONMENT_FOR_LIMITED_DOG_COMMAND ->
-                    sendPlainText(chatId, "Список рекомендаций по обустройству дома для собаки с ограниченными " +
-                            "возможностями (зрение, передвижение)");
-            case CYNOLOGIST_ADVICES_COMMAND -> sendPlainText(chatId, "Советы кинолога по первичному общению с собакой");
-            case CYNOLOGIST_CONTACTS_COMMAND ->
-                    sendPlainText(chatId, "Рекомендации по проверенным кинологам для дальнейшего обращения к ним");
-            case USUAL_REFUSALS_COMMAND ->
-                    sendPlainText(chatId, "Список причин, почему могут отказать и не дать забрать собаку из приюта");
-            case SEND_REPORT_COMMAND -> {
-                sendPlainText(chatId, """
-                        Уважаемый опекун! В качестве отчета пошагово направляются следующие данные:
-                        1) Фото животного.
-                        2) Рацион животного.
-                        3) Общее самочувствие и привыкание к новому месту.
-                        4) Изменение в поведении: отказ от старых привычек, приобретение новых.
-                        """);
-                sendPlainText(chatId, "Пожалуйста, пришлите фото животного (1 шт.)");
-            }
-            case VOLUNTEER_CONFIRM_COMMAND -> sendPlainText(chatId, "Спасибо за подтверждение заявки");
-            default -> sendPlainText(chatId, "Неизвестная команда");
+        } else if (matcherProbation.matches()) {
+            decideOnProbation(matcherProbation, volunteerChatId);
+        } else {
+            sendPlainText(chatId, "Неизвестная команда");
+        }
+    }
+
+    private void decideOnProbation(Matcher matcher, long volunteerChatId) {
+        long carerId = Long.parseLong(matcher.group(3));
+        Agreement agreement = this.agreementRepository.findAgreementByCarer_Id(carerId)
+                .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
+        if (matcher.group(1).equals(Command.EXTEND_PROBATION_14_COMMAND.getCommand())) {
+            agreement.setProbationEndData(agreement.getProbationEndData().plusDays(14));
+            this.agreementRepository.save(agreement);
+            sendPlainText(agreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 14 дней.");
+            sendPlainText(volunteerChatId, "Опекун  " + agreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 14 дней.");
+        } else if (matcher.group(1).equals(Command.EXTEND_PROBATION_30_COMMAND.getCommand())) {
+            agreement.setProbationEndData(agreement.getProbationEndData().plusDays(30));
+            this.agreementRepository.save(agreement);
+            sendPlainText(agreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 30 дней.");
+            sendPlainText(volunteerChatId, "Опекун  " + agreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 30 дней.");
+        } else if (matcher.group(1).equals(Command.PROBATION_NOT_PASSED_COMMAND.getCommand())) {
+            Dog dog = agreement.getCarer().getDog();
+            dog.setOnProbation(false);
+            this.dogRepository.save(dog);
+            sendPlainText(agreement.getCarer().getChatId(), "Добрый день! К сожалению, Вы не прошли испытательный срок. " +
+                    "Просим Вас привезти собаку обратно в приют и уточнить всю необходимую информацию");
+            sendPlainText(volunteerChatId, "Опекун  " + agreement.getCarer().getFullName() + " уведомлен о не прохождении испытательного срока.");
+        } else if (matcher.group(1).equals(Command.PROBATION_PASSED_COMMAND.getCommand())) {
+            Dog dog = agreement.getCarer().getDog();
+            dog.setOnProbation(false);
+            this.dogRepository.save(dog);
+            sendPlainText(agreement.getCarer().getChatId(), "Добрый день! Поздравляем, Вы прошли испытательный срок!");
+            sendPlainText(volunteerChatId, "Опекун  " + agreement.getCarer().getFullName() + " уведомлен о прохождении испытательного срока.");
         }
     }
 
@@ -320,7 +350,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void handleTextMessage(String message, long chatId, long volunteerChatId) {
         Pattern clientContactPattern = Pattern.compile(
                 "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
+        Pattern carerIdPattern = Pattern.compile(
+                "^(id)(\\s)(\\d+)$");
         Matcher matcherClientContact = clientContactPattern.matcher(message);
+        Matcher matcherCarerId = carerIdPattern.matcher(message);
         String clientName;
         String clientPhoneNumber;
         if (matcherClientContact.matches()) {
@@ -385,6 +418,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             String text = "Спасибо! Отчет за " +
                     LocalDate.now() + " сохранен!";
             sendPlainText(chatId, text);
+        } else if (matcherCarerId.matches()) {
+            long carerId = Long.parseLong(matcherCarerId.group(3));
+            Carer carer = this.carerRepository.findById(carerId)
+                    .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
+            sendPlainText(carer.getChatId(), "Дорогой усыновитель, мы заметили, что ты заполняешь отчет не так подробно, как необходимо. " +
+                    "Пожалуйста, подойди ответственнее к этому занятию. В противном случае волонтеры приюта будут " +
+                    "обязаны самолично проверять условия содержания животного");
+            sendPlainText(volunteerChatId, "Опекун " + carer.getFullName() + " уведомлен");
         } else {
             String text = "Некорректное сообщение";
             sendPlainText(chatId, text);
@@ -561,105 +602,5 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     public void sendPlainText(long chatId, String text) {
         telegramBot.execute(new SendMessage(chatId, text));
-    }
-
-    private String getExtensions(String fileName) {
-        return fileName.substring(fileName.lastIndexOf(".") + 1);
-    }
-
-    @Scheduled(cron = "0 0 14 * * ?")
-    public void sendNotification() {
-        List<Agreement> agreements = this.agreementService.findAllAgreementsByDate(LocalDate.now());
-        agreements.forEach(agreement -> {
-            this.timer = new Timer();
-            this.timer.scheduleAtFixedRate(
-                    new TimerTask() {
-                        @Autowired
-                        private VolunteerChatRepository volunteerChatRepository;
-                        @Autowired
-                        private CarerRepository carerRepository;
-
-                        private void sendMessage(long chatId, String text) {
-                            telegramBot.execute(new SendMessage(chatId, text));
-                        }
-
-                        @Override
-                        public void run() {
-                            List<Carer> carers = this.carerRepository.findAll();
-                            carers.forEach(carer -> {
-                                List<DailyReport> dailyReports = carer.getDailyReports();
-                                int dailyReportSize = dailyReports.size();
-                                DailyReport lastReport = dailyReports.get(dailyReportSize - 1);
-
-                                if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(1))) {
-                                    sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                            "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
-                                }
-                                if (lastReport.getReportDate().isBefore(LocalDate.now().minusDays(2))) {
-                                    sendMessage(carer.getChatId(), "Добрый день! Напоминаю, что " +
-                                            "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
-                                    SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(1L)
-                                            .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
-                                            .getTelegramChatId(),
-                                            "Опекун " + carer.getFullName() + " не отправлял отчет более двух дней." +
-                                                    "[User link](tg://user?id=" + carer.getChatId() + " )");
-                                    sendMessageForVolunteer.parseMode(ParseMode.Markdown);
-                                    telegramBot.execute(sendMessageForVolunteer);
-                                }
-                            });
-                        }
-                    }, Date.from(agreement.getConclusionDate()
-                            .plusDays(1)
-                            .atStartOfDay(ZoneId.systemDefault())
-                            .toInstant()),
-                    1000 * 60 * 60 * 24L);
-        });
-        List<Carer> carers = this.carerRepository.findAll();
-        carers.forEach(carer -> {
-            if (carer.getDog().isTaken() && !carer.getDog().isOnProbation()) {
-                this.timer.cancel();
-            }
-        });
-    }
-
-
-    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
-    public void notionForVolunteerThatProbationIsEnded() {
-        List<Dog> allDogs = dogService.getAllDogs();
-        for (Dog dog : allDogs) {
-            if (dog.isOnProbation()) {
-                long dogId = dog.getId();
-                Carer carer = carerService.findCarerByDogId(dogId);
-                long carerId = carer.getId();
-                var agreement = agreementService.findAgreementByCarerId(carerId);
-                var conclusionDate = agreement.getConclusionDate();
-
-                if (!conclusionDate.plusDays(30L).isBefore(LocalDate.now())) {
-                    var carerChatId = carer.getChatId();
-                    SendMessage sendMessageForVolunteer = new SendMessage(
-                            volunteerChatRepository.findById(1L),
-                            "У клиента" + "[User link](tg://user?id=" + carerChatId +
-                                    "истёк испытательный срок.\n" +
-                                    "Просьба решить пройден ли испытательный срок клиентом\n" +
-                                    "и сообщить ему.");
-                    telegramBot.execute(sendMessageForVolunteer);
-                }
-            }
-        }
-    }
-
-    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.HOURS)
-    public void notionForCarerThatProbationIsEnded() {
-        List<Dog> allDogs = dogService.getAllDogs();
-        for (Dog dog : allDogs) {
-            if (dog.isTaken() && !dog.isOnProbation()) {
-                Carer carer = carerService.findCarerByDogId(dog.getId());
-                SendMessage sendMessageForCarer = new SendMessage(
-                        carer.getChatId(), "Поздравляем! Вы прошли испытательный срок.\n" +
-                        "Просьба зайти в приют, оформить документы.");
-                telegramBot.execute(sendMessageForCarer);
-            }
-
-        }
     }
 }

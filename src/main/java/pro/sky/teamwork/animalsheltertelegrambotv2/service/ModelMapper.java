@@ -95,6 +95,7 @@ public class ModelMapper {
         agreement.setId(agreementRecord.getId());
         agreement.setNumber(agreementRecord.getNumber());
         agreement.setConclusionDate(agreementRecord.getConclusionDate());
+        agreement.setProbationEndData(agreementRecord.getConclusionDate().plusDays(30));
         Carer carer = this.carerRepository.findById(agreementRecord.getCarerId())
                 .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
         agreement.setCarer(carer);
@@ -106,6 +107,7 @@ public class ModelMapper {
         agreementRecord.setId(agreement.getId());
         agreementRecord.setNumber(agreement.getNumber());
         agreementRecord.setConclusionDate(agreement.getConclusionDate());
+        agreementRecord.setProbationEndData(agreement.getProbationEndData());
         agreementRecord.setCarerId(agreement.getCarer().getId());
         return agreementRecord;
     }

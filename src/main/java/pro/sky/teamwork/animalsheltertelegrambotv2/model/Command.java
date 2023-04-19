@@ -21,7 +21,12 @@ public enum Command {
     USUAL_REFUSALS_COMMAND("/usual_refusals", "Частые причины отказов в выдаче собаки кандидату"),
     SEND_REPORT_MENU_COMMAND("/send_report_menu", "Прислать отчет о питомце"),
     SEND_REPORT_COMMAND("/send_report", "Прислать отчет"),
-    VOLUNTEER_CONFIRM_COMMAND("/volunteer_confirm", "Подтверждение приема заявки");
+    VOLUNTEER_CONFIRM_COMMAND("/volunteer_confirm", "Подтверждение приема заявки"),
+    EXTEND_PROBATION_14_COMMAND("/extend_probation_14", "Продлить испытательный срок на 14 дней"),
+    EXTEND_PROBATION_30_COMMAND("/extend_probation_30", "Продлить испытательный срок на 30 дней"),
+    PROBATION_PASSED_COMMAND("/probation_passed", "Испытательный срок пройден"),
+    PROBATION_NOT_PASSED_COMMAND("/probation_not_passed", "Испытательный срок НЕ пройден"),
+    NOTIFY_CARERS_COMMAND("/notify_carers", "Уведомить опекунов");
 
     private final String command;
     private final String description;
@@ -46,5 +51,14 @@ public enum Command {
             }
         }
         return null;
+    }
+
+    public static boolean commandExists(String command) {
+        for (Command stringCommand : values()) {
+            if (stringCommand.getCommand().equals(command)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

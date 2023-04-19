@@ -26,10 +26,11 @@ CREATE TABLE carers
 
 CREATE TABLE agreements
 (
-    id              SERIAL PRIMARY KEY,
-    number          TEXT NOT NULL,
-    conclusion_date DATE NOT NULL,
-    carer_id        BIGINT CHECK (carer_id > 0) REFERENCES carers (id)
+    id                 SERIAL PRIMARY KEY,
+    number             TEXT NOT NULL,
+    conclusion_date    DATE NOT NULL,
+    probation_end_data DATE NOT NULL,
+    carer_id           BIGINT CHECK (carer_id > 0) REFERENCES carers (id)
 );
 
 CREATE TABLE daily_reports

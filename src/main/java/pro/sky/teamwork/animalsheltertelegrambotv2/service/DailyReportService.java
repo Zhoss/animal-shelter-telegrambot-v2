@@ -72,7 +72,7 @@ public class DailyReportService {
     public DailyReport findDailyReportByCarerIdAndDate(Long carerId, LocalDate reportDate) {
         if (carerId > 0 && reportDate != null) {
             LOGGER.info("Was invoked method to find daily report by carer id = " + carerId + " and the specified date = " +
-                    reportDate + " from Telegram bot");
+                    reportDate);
             return this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
         } else {
             LOGGER.error("Input carer id = " + carerId + " is incorrect and/or input object 'reportDate' is null");
@@ -100,5 +100,12 @@ public class DailyReportService {
             LOGGER.error("Input id = " + id + " for deleting daily report is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id ежедневного отчета");
         }
+    }
+
+    public List<DailyReportRecord> findDailyReportsByDate(LocalDate localDate) {
+        List<DailyReport> dailyReports = this.dailyReportRepository.findDailyReportsByReportDate(localDate);
+        return dailyReports.stream()
+                .map(this.modelMapper::mapToDailyRecordRecord)
+                .collect(Collectors.toList());
     }
 }
