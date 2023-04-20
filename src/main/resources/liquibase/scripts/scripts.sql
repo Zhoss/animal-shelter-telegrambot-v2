@@ -52,3 +52,11 @@ CREATE TABLE volunteer_chats
     name             VARCHAR(50) NOT NULL,
     telegram_chat_id BIGINT      NOT NULL
 );
+
+-- changeset dzhosan:2
+CREATE TABLE clients
+(
+    id               SERIAL PRIMARY KEY,
+    telegram_chat_id BIGINT NOT NULL,
+    pet_type         TEXT
+)
