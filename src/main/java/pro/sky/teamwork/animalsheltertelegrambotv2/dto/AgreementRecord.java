@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public class AgreementRecord {
     private long id;
+    private String petType;
     private String number;
     private LocalDate conclusionDate;
     private LocalDate probationEndData;
@@ -18,6 +19,14 @@ public class AgreementRecord {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getPetType() {
+        return petType;
+    }
+
+    public void setPetType(String petType) {
+        this.petType = petType;
     }
 
     public String getNumber() {

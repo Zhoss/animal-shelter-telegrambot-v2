@@ -1,31 +1,12 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
-
 import java.time.LocalDate;
-import java.util.Objects;
-@Entity
-@Table(name = "agreements")
+
 public class Agreement {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(nullable = false)
     private String number;
-    @Column(name = "conclusion_date", nullable = false)
     private LocalDate conclusionDate;
-    @Column(name = "probation_end_data", nullable = false)
     private LocalDate probationEndData;
-    @OneToOne
-    @JoinColumn(name = "carer_id", referencedColumnName = "id")
-    private Carer carer;
 
     public Agreement() {
     }
@@ -68,34 +49,5 @@ public class Agreement {
 
     public void setProbationEndData(LocalDate probationEndData) {
         this.probationEndData = probationEndData;
-    }
-
-    public Carer getCarer() {
-        return carer;
-    }
-
-    public void setCarer(Carer carer) {
-        this.carer = carer;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Agreement agreement = (Agreement) o;
-        return id == agreement.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Соглашение о передаче собаки: " +
-                "id = " + id +
-                ", номер = " + number +
-                ", дата заключения = " + conclusionDate;
     }
 }

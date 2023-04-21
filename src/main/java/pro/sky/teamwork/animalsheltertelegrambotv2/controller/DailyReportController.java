@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogDailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 
@@ -47,7 +48,7 @@ public class DailyReportController {
                                     @Content(
                                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                                             array = @ArraySchema(schema = @Schema(
-                                                    implementation = DailyReport[].class))
+                                                    implementation = DogDailyReport[].class))
                                     )
                             }
                     )
@@ -57,9 +58,10 @@ public class DailyReportController {
     @GetMapping("/carer")
     public ResponseEntity<List<DailyReportRecord>> findDailyReportsByCarerId(
             @Parameter(description = "ID опекуна", example = "1")
-            @RequestParam(name = "Идентификатор опекуна") Long carerId) {
+            @RequestParam(name = "Идентификатор опекуна") Long carerId,
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         List<DailyReportRecord> dailyReportByCarer = dailyReportService
-                .findDailyReportsByCarer(carerId);
+                .findDailyReportsByCarer(carerId, petType);
         return ResponseEntity.ok(dailyReportByCarer);
     }
 
@@ -73,7 +75,7 @@ public class DailyReportController {
                                     @Content(
                                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                                             array = @ArraySchema(schema = @Schema(
-                                                    implementation = DailyReport[].class))
+                                                    implementation = DogDailyReport[].class))
                                     )
                             }
                     )
@@ -83,9 +85,10 @@ public class DailyReportController {
     @GetMapping("/carer-date")
     public ResponseEntity<DailyReportRecord> findDailyReportsByCarerAndDate(
             @RequestParam Long carerId,
-            @RequestParam LocalDate reportDate) {
+            @RequestParam LocalDate reportDate,
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         DailyReportRecord dailyReportByCarerAndDate = dailyReportService
-                .findDailyReportByCarerAndDate(carerId, reportDate);
+                .findDailyReportByCarerAndDate(carerId, reportDate, petType);
         return ResponseEntity.ok(dailyReportByCarerAndDate);
     }
 
@@ -96,9 +99,10 @@ public class DailyReportController {
     @GetMapping("/date")
     public ResponseEntity<List<DailyReportRecord>> findDailyReportsByDate(
             @Parameter(description = "Дата отчета", example = "2023-01-01")
-            @RequestParam(name = "Дата отчета") LocalDate localDate) {
+            @RequestParam(name = "Дата отчета") LocalDate localDate,
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         List<DailyReportRecord> dailyReportsByDate = dailyReportService
-                .findDailyReportsByDate(localDate);
+                .findDailyReportsByDate(localDate, petType);
         return ResponseEntity.ok(dailyReportsByDate);
     }
 
@@ -107,9 +111,12 @@ public class DailyReportController {
             tags = "Ежедневный отчет"
     )
     @GetMapping("/download-photo-by-date")
-    public void downloadPhotoByByCarerIdAndDate(long carerId, LocalDate reportDate, HttpServletResponse response) {
+    public void downloadPhotoByByCarerIdAndDate(@RequestParam long carerId,
+                                                @RequestParam LocalDate reportDate,
+                                                @RequestParam(defaultValue = "кошка/собака") String petType,
+                                                HttpServletResponse response) {
         DailyReport dailyReport = this.dailyReportService
-                .findDailyReportByCarerIdAndDate(carerId, reportDate);
+                .findDailyReportByCarerIdAndDate(carerId, reportDate, petType);
 
         Path path = Path.of(dailyReport.getFilePath());
 
@@ -123,13 +130,15 @@ public class DailyReportController {
             e.printStackTrace();
         }
     }
+
     @Operation(
             summary = "Удаление отчета по ID отчета",
             tags = "Ежедневный отчет"
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDailyReport(@PathVariable long id) {
-        this.dailyReportService.deleteDailyReport(id);
+    public ResponseEntity<?> deleteDailyReport(@PathVariable long id,
+                                               @RequestParam(defaultValue = "кошка/собака") String petType) {
+        this.dailyReportService.deleteDailyReport(id, petType);
         return ResponseEntity.ok().build();
     }
 

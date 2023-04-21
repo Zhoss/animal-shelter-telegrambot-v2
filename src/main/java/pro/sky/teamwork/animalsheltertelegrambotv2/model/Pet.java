@@ -1,17 +1,6 @@
-package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
+package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-/**
- * Клас описывающий поля для приема информации по <b> собаке </b> через Swagger.
- * <br>Параметры:
- * <br> long id
- * <br> String name;
- * <br> String breed;
- * <br> String coatColor;
- * <br> int age;
- * <br> String features;
- *
- */
-public class DogRecord {
+public class Pet {
     private long id;
     private String name;
     private String breed;
@@ -19,7 +8,7 @@ public class DogRecord {
     private int age;
     private String features;
 
-    public DogRecord() {
+    public Pet() {
     }
 
     public long getId() {
@@ -35,7 +24,11 @@ public class DogRecord {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (!name.isEmpty() && !name.isBlank()) {
+            this.name = name;
+        } else {
+            throw new IllegalArgumentException("Требуется указать кличку питомца");
+        }
     }
 
     public String getBreed() {
@@ -43,7 +36,11 @@ public class DogRecord {
     }
 
     public void setBreed(String breed) {
-        this.breed = breed;
+        if (!breed.isEmpty() && !breed.isBlank()) {
+            this.breed = breed;
+        } else {
+            throw new IllegalArgumentException("Требуется указать породу питомца");
+        }
     }
 
     public String getCoatColor() {
@@ -51,7 +48,11 @@ public class DogRecord {
     }
 
     public void setCoatColor(String coatColor) {
-        this.coatColor = coatColor;
+        if (!coatColor.isEmpty() && !coatColor.isBlank()) {
+            this.coatColor = coatColor;
+        } else {
+            throw new IllegalArgumentException("Требуется указать окрас питомца");
+        }
     }
 
     public int getAge() {

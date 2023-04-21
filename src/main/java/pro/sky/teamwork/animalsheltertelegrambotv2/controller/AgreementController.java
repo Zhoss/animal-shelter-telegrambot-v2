@@ -2,15 +2,7 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.*;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 
@@ -41,8 +33,9 @@ public class AgreementController {
     )
     @GetMapping("/{id}")
     public ResponseEntity<AgreementRecord> findAgreementById(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(agreementService.findAgreementById(id));
+            @PathVariable Long id,
+            @RequestParam String petType) {
+        return ResponseEntity.ok(agreementService.findAgreementById(id, petType));
     }
 
     @Operation(
@@ -61,8 +54,9 @@ public class AgreementController {
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAgreementById(
-            @PathVariable long id) {
-        agreementService.deleteAgreement(id);
+            @PathVariable long id,
+            @RequestParam String petType) {
+        agreementService.deleteAgreement(id, petType);
         return ResponseEntity.ok().build();
     }
 
@@ -71,8 +65,8 @@ public class AgreementController {
             tags = "Договор о принятии"
     )
     @GetMapping
-    public ResponseEntity<List<AgreementRecord>> findAllAgreements() {
-        return ResponseEntity.ok(this.agreementService.findAllAgreements());
+    public ResponseEntity<List<AgreementRecord>> findAllAgreements(@RequestParam String petType) {
+        return ResponseEntity.ok(this.agreementService.findAllAgreements(petType));
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

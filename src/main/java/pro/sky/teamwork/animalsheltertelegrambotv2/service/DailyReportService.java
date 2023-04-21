@@ -4,9 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.CatDailyReport;
+import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatDailyReportRepository;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogDailyReport;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogDailyReportRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DailyReportRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
-import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,11 +19,13 @@ import java.util.stream.Collectors;
 @Service
 public class DailyReportService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DailyReportService.class);
-    private final DailyReportRepository dailyReportRepository;
+    private final DogDailyReportRepository dogDailyReportRepository;
+    private final CatDailyReportRepository catDailyReportRepository;
     private final ModelMapper modelMapper;
 
-    public DailyReportService(DailyReportRepository dailyReportRepository, ModelMapper modelMapper) {
-        this.dailyReportRepository = dailyReportRepository;
+    public DailyReportService(DogDailyReportRepository dogDailyReportRepository, CatDailyReportRepository catDailyReportRepository, ModelMapper modelMapper) {
+        this.dogDailyReportRepository = dogDailyReportRepository;
+        this.catDailyReportRepository = catDailyReportRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -29,20 +34,36 @@ public class DailyReportService {
      *
      * @param carerId
      * @return возвращает отчет по опекуну (по его id)
-     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerId(Long)
+     * @see DogDailyReportRepository#findDogDailyReportByDogCarerId(Long)
      */
     @Transactional(readOnly = true)
-    public List<DailyReportRecord> findDailyReportsByCarer(Long carerId) {
+    public List<DailyReportRecord> findDailyReportsByCarer(Long carerId, String petType) {
         if (carerId > 0) {
-            List<DailyReport> dailyReports = dailyReportRepository.findDailyReportByCarerId(carerId);
-            if (!dailyReports.isEmpty()) {
-                LOGGER.info("Was invoked method to find daily reports by carer id");
-                return dailyReports.stream()
-                        .map(this.modelMapper::mapToDailyRecordRecord)
-                        .collect(Collectors.toList());
+            if (petType.equals("кошка")) {
+                List<CatDailyReport> catDailyReports = catDailyReportRepository.findCatDailyReportByCatCarerId(carerId);
+                if (!catDailyReports.isEmpty()) {
+                    LOGGER.info("Was invoked method to find cat daily reports by cat carer id");
+                    return catDailyReports.stream()
+                            .map(this.modelMapper::mapToDailyRecordRecord)
+                            .collect(Collectors.toList());
+                } else {
+                    LOGGER.info("Was invoked method to find all cat daily reports by cat carer id, but cat daily reports were not found");
+                    return new ArrayList<>();
+                }
+            } else if (petType.equals("собака")) {
+                List<DogDailyReport> dogDailyReports = dogDailyReportRepository.findDogDailyReportByDogCarerId(carerId);
+                if (!dogDailyReports.isEmpty()) {
+                    LOGGER.info("Was invoked method to find dog daily reports by dog carer id");
+                    return dogDailyReports.stream()
+                            .map(this.modelMapper::mapToDailyRecordRecord)
+                            .collect(Collectors.toList());
+                } else {
+                    LOGGER.info("Was invoked method to find all dog daily reports by dog carer id, but dog daily reports were not found");
+                    return new ArrayList<>();
+                }
             } else {
-                LOGGER.info("Was invoked method to find all daily reports by carer id, but daily reports were not found");
-                return new ArrayList<>();
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
             }
         } else {
             LOGGER.error("Input carer id = " + carerId + " to find daily reports is incorrect");
@@ -55,57 +76,94 @@ public class DailyReportService {
      *
      * @param carerId
      * @return возвращает отчет по опекуну (по его id) и дате.
-     * @see pro.sky.teamwork.animalsheltertelegrambotv2.repository.DailyReportRepository#findDailyReportByCarerIdAndReportDate(Long, LocalDate)
+     * @see DogDailyReportRepository#findDogDailyReportByDogCarerIdAndReportDate(Long, LocalDate)
      */
     @Transactional(readOnly = true)
-    public DailyReportRecord findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
+    public DailyReportRecord findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate, String petType) {
         if (carerId > 0 && reportDate != null) {
-            LOGGER.info("Was invoked method to find daily report by carer id and the specified date = " + reportDate);
-            return this.modelMapper.mapToDailyRecordRecord(this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate));
+            if (petType.equals("кошка")) {
+                LOGGER.info("Was invoked method to find cat daily report by cat carer id and the specified date = " + reportDate);
+                return this.modelMapper.mapToDailyRecordRecord(this.catDailyReportRepository
+                        .findCatDailyReportByCatCarerIdAndReportDate(carerId, reportDate));
+            } else if (petType.equals("собака")) {
+                LOGGER.info("Was invoked method to find dog daily report by dog carer id and the specified date = " + reportDate);
+                return this.modelMapper.mapToDailyRecordRecord(this.dogDailyReportRepository
+                        .findDogDailyReportByDogCarerIdAndReportDate(carerId, reportDate));
+            } else {
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
+            }
         } else {
             LOGGER.error("Input carer id = " + carerId + " is incorrect and/or input object 'reportDate' is null");
             throw new IllegalArgumentException("Требуется указать корректный id опекуна и/или корректную дату");
+        }
+    }
+
+    public List<DailyReportRecord> findDailyReportsByDate(LocalDate localDate, String petType) {
+        if (petType.equals("кошка")) {
+            List<CatDailyReport> catDailyReports = this.catDailyReportRepository.findCatDailyReportsByReportDate(localDate);
+            return catDailyReports.stream()
+                    .map(this.modelMapper::mapToDailyRecordRecord)
+                    .collect(Collectors.toList());
+        } else if (petType.equals("собака")) {
+            List<DogDailyReport> dogDailyReports = this.dogDailyReportRepository.findDogDailyReportsByReportDate(localDate);
+            return dogDailyReports.stream()
+                    .map(this.modelMapper::mapToDailyRecordRecord)
+                    .collect(Collectors.toList());
+        } else {
+            LOGGER.error("Wrong pet type");
+            throw new IllegalArgumentException("Тип животного указан не верно");
         }
     }
 
     @Transactional(readOnly = true)
-    public DailyReport findDailyReportByCarerIdAndDate(Long carerId, LocalDate reportDate) {
+    public DailyReport findDailyReportByCarerIdAndDate(Long carerId, LocalDate reportDate, String petType) {
         if (carerId > 0 && reportDate != null) {
-            LOGGER.info("Was invoked method to find daily report by carer id = " + carerId + " and the specified date = " +
-                    reportDate);
-            return this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
+            if (petType.equals("кошка")) {
+                LOGGER.info("Was invoked method to find cat daily report by cat carer id = " + carerId + " and the specified date = " +
+                        reportDate);
+                return this.catDailyReportRepository.findCatDailyReportByCatCarerIdAndReportDate(carerId, reportDate);
+            } else if (petType.equals("собака")) {
+                LOGGER.info("Was invoked method to find dog daily report by dog carer id = " + carerId + " and the specified date = " +
+                        reportDate);
+                return this.dogDailyReportRepository.findDogDailyReportByDogCarerIdAndReportDate(carerId, reportDate);
+            } else {
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
+            }
         } else {
             LOGGER.error("Input carer id = " + carerId + " is incorrect and/or input object 'reportDate' is null");
             throw new IllegalArgumentException("Требуется указать корректный id опекуна и/или корректную дату");
         }
     }
 
-    @Transactional
-    public void addDailyReport(DailyReport dailyReport) {
-        if (dailyReport != null) {
-            LOGGER.info("Was invoked method for adding daily report from Telegram bot");
-            this.dailyReportRepository.save(dailyReport);
-        } else {
-            LOGGER.error("Input object 'dailyReport' is null");
-            throw new IllegalArgumentException("Input object 'dailyReport' is null");
-        }
-    }
+//    @Transactional
+//    public void addDailyReport(DogDailyReport dogDailyReport) {
+//        if (dogDailyReport != null) {
+//            LOGGER.info("Was invoked method for adding daily report from Telegram bot");
+//            this.dogDailyReportRepository.save(dogDailyReport);
+//        } else {
+//            LOGGER.error("Input object 'dailyReport' is null");
+//            throw new IllegalArgumentException("Input object 'dailyReport' is null");
+//        }
+//    }
 
     @Transactional
-    public void deleteDailyReport(long id) {
+    public void deleteDailyReport(long id, String petType) {
         if (id > 0) {
-            LOGGER.info("Was invoked method to delete carer");
-            this.dailyReportRepository.deleteById(id);
+            if (petType.equals("кошка")) {
+                LOGGER.info("Was invoked method to delete cat daily report");
+                this.catDailyReportRepository.deleteById(id);
+            } else if (petType.equals("собака")) {
+                LOGGER.info("Was invoked method to delete dog daily report");
+                this.dogDailyReportRepository.deleteById(id);
+            } else {
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
+            }
         } else {
             LOGGER.error("Input id = " + id + " for deleting daily report is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id ежедневного отчета");
         }
-    }
-
-    public List<DailyReportRecord> findDailyReportsByDate(LocalDate localDate) {
-        List<DailyReport> dailyReports = this.dailyReportRepository.findDailyReportsByReportDate(localDate);
-        return dailyReports.stream()
-                .map(this.modelMapper::mapToDailyRecordRecord)
-                .collect(Collectors.toList());
     }
 }

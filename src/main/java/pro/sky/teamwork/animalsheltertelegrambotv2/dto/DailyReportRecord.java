@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public class DailyReportRecord {
     private long id;
+    private String petType;
     private LocalDate reportDate;
     private String dogDiet;
     private String dogHealth;
@@ -19,6 +20,14 @@ public class DailyReportRecord {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getPetType() {
+        return petType;
+    }
+
+    public void setPetType(String petType) {
+        this.petType = petType;
     }
 
     public LocalDate getReportDate() {

@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
 
 import java.util.List;
 
@@ -38,21 +38,22 @@ public class CarerController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Carer added",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+                                    array = @ArraySchema(schema = @Schema(implementation = DogCarer[].class)))),
                     @ApiResponse(responseCode = "400", description = "Incorrect id",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+                                    array = @ArraySchema(schema = @Schema(implementation = DogCarer[].class)))),
                     @ApiResponse(responseCode = "404", description = "Carer with current id not found",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class))))
+                                    array = @ArraySchema(schema = @Schema(implementation = DogCarer[].class))))
             },
             tags = "Опекун"
     )
     @GetMapping("/{id}")
     public ResponseEntity<CarerRecord> findCarer(
             @Parameter(description = "ID Опекуна")
-            @PathVariable long id) {
-        return ResponseEntity.ok(this.carerService.findCarer(id));
+            @PathVariable long id,
+            @RequestParam String petType) {
+        return ResponseEntity.ok(this.carerService.findCarer(id, petType));
     }
 
     @Operation(
@@ -60,7 +61,7 @@ public class CarerController {
                     description = "Редактируемый опекун",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = Carer.class),
+                            schema = @Schema(implementation = DogCarer.class),
                             examples = {
                                     @ExampleObject(
                                             value = "{\"id\": 0,"
@@ -93,15 +94,16 @@ public class CarerController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Carer information delete",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = Carer[].class)))),
+                                    array = @ArraySchema(schema = @Schema(implementation = DogCarer[].class)))),
             },
             tags = "Опекун"
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCarer(
             @Parameter(description = "ID Опекуна")
-            @PathVariable long id) {
-        this.carerService.deleteCarer(id);
+            @PathVariable long id,
+            @RequestParam String petType) {
+        this.carerService.deleteCarer(id, petType);
         return ResponseEntity.ok().build();
     }
 
@@ -112,8 +114,9 @@ public class CarerController {
     @GetMapping("/phone-number")
     public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
-            @RequestParam String phone) {
-        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone));
+            @RequestParam String phone,
+            @RequestParam String petType) {
+        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone, petType));
     }
 
     @Operation(
@@ -121,8 +124,8 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping
-    public ResponseEntity<List<CarerRecord>> findAllCarers() {
-        return ResponseEntity.ok(this.carerService.findAllCarers());
+    public ResponseEntity<List<CarerRecord>> findAllCarers(@RequestParam String petType) {
+        return ResponseEntity.ok(this.carerService.findAllCarers(petType));
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)
