@@ -112,8 +112,8 @@ public class CarerController {
     @GetMapping("/phone-number")
     public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
-            @RequestParam String phone) {
-        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone));
+            @RequestParam ("phoneNumber") String phoneNumber) {
+        return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phoneNumber));
     }
 
     @Operation(
