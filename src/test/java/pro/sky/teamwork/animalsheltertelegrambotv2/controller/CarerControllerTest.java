@@ -67,7 +67,7 @@ public class CarerControllerTest {
         mockMvc.perform(patch("/carer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
-                        .content(/*String.valueOf(carerObject*/ carerObject.toString())
+                        .content(carerObject.toString())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print())
@@ -92,28 +92,14 @@ public class CarerControllerTest {
     }
 
     @Test
-    void testGetCarerByPhoneNumber() throws Exception {         //???????
+    void testGetCarerByPhoneNumber() throws Exception {
 
-       // JSONObject carerObject = new JSONObject();
-
-        //carerObject.put("id", 1);
-       // carerObject.put("phoneNumber", "+7(123)1234567");
-
-       // CarerRecord carerTest = new CarerRecord();
-        //carerTest.setId(1);
-       // carerTest.setPhoneNumber("+7(123)1234567");
-
-        //when(carerService.findCarerByPhoneNumber(ArgumentMatchers.anyString())).thenReturn(carerTest);
-
-        mockMvc.perform(
-                        get("/carer/phone-number","+7(123)1234567")
+              mockMvc.perform(
+                        get("/carer/phone-number?phoneNumber=+7(123)1234567")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
-                                //.content(String.valueOf(carerObject))
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        //.andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-        //.andExpect(jsonPath("$.phoneNumber", Matchers.equalTo("+7(123)1234567")));
         verify(carerService).findCarerByPhoneNumber("+7(123)1234567");
     }
 

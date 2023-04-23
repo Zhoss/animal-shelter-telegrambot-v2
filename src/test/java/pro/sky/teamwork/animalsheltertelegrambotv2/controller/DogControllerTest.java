@@ -22,6 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.ModelMapper;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -128,83 +130,35 @@ public class DogControllerTest {
         verify(dogService).findAllDogs();
     }
 
-    /*@Test
-    void testPatchChangeIsTakenStatusTrue() throws Exception {
-       /*HashMap<Long, Boolean> updates = new HashMap<>();
-
-        updates.put(1L,false);
+    @Test
+    void testPatchChangeOnProbationStatus() throws Exception {
 
         mockMvc.perform(
-                        patch("/is-taken/{id}",1)
-                                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                .characterEncoding("utf-8")
-                                .content(mapper.writeValueAsString(updates))
-                                .accept(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.isTaken", Matchers.equalTo(true)));
-        verify(dogService).changeIsTakenStatus(1L, true);*/
-       /* boolean oldIsTaken = true;
-        boolean newIsTaken ;
-
-        Dog testDog = new Dog();
-
-        newIsTaken = testDog.isTaken();
-
-        when(dogService.changeIsTakenStatus(ArgumentMatchers.eq()))
-                .thenReturn(testDog);
-        assertEquals(newIsTaken, oldIsTaken);
-
-        mockMvc.perform(
-                        patch("/dog/is-taken/{id}", 1))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", Matchers.equalTo(0)));
-        verify(dogService).changeOnProbationStatus(1, true);*/
-//бооооль!!!
-       /* JSONObject dogObject = new JSONObject();
-        dogObject.put("id", 1);
-        dogObject.put("isTaken", true);
-
-        when(dogService.changeIsTakenStatus(ArgumentMatchers.any()).thenReturn(dogObject);
-
-        mockMvc.perform(
-                        patch("/dog/is-taken/{id}", 1)
+                        patch("/dog/on-probation/{id}",1)
+                                .param("id", "1")
+                                .param("onProbation", "true")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
-                                .content(dogObject.toString())
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        verify(dogService).changeIsTakenStatus(1, true);*/
-      /*  Dog dogTest = new Dog();
 
-        dogTest.setId(1);
-        dogTest.setTaken(true);
+        verify(dogService).changeOnProbationStatus(1L, true);
 
-        when(dogService.changeIsTakenStatus()).thenReturn(dogTest);
+    }
 
+    @Test
+    void testPatchChangeIsTakenStatus() throws Exception {
 
-        MockHttpServletRequestBuilder builder =
-                MockMvcRequestBuilders.put("/dog/is-taken/{id}")
-                        .contentType(MediaType.APPLICATION_XML_VALUE)
-                        .accept(MediaType.APPLICATION_XML)
-                        .characterEncoding("UTF-8")
-                        .content(dogTest);
-        this.mockMvc.perform(builder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isOk())
-                .andExpect(MockMvcResultMatchers.content()
-                        .string("Article created."))
-                .andDo(MockMvcResultHandlers.print());
+        mockMvc.perform(
+                        patch("/dog/is-taken/{id}",1)
+                                .param("id", "1")
+                                .param("isTaken", "true")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
+        verify(dogService).changeIsTakenStatus(1L, true);
 
-        mockMvc.perform(patch("/heavyrecource/1")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(dogService.changeIsTakenStatus(dogTest.getId(), dogTest.isTaken())
-    (dogTest))).andExpect(status().isOk());
-
-
-
-    }*/
-
+    }
 }
