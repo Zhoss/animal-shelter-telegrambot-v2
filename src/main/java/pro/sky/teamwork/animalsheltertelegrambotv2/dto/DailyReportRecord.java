@@ -6,9 +6,9 @@ public class DailyReportRecord {
     private long id;
     private String petType;
     private LocalDate reportDate;
-    private String dogDiet;
-    private String dogHealth;
-    private String dogBehavior;
+    private String petDiet;
+    private String petHealth;
+    private String petBehavior;
     private long carerId;
 
     public DailyReportRecord() {
@@ -38,28 +38,28 @@ public class DailyReportRecord {
         this.reportDate = reportDate;
     }
 
-    public String getDogDiet() {
-        return dogDiet;
+    public String getPetDiet() {
+        return petDiet;
     }
 
-    public void setDogDiet(String dogDiet) {
-        this.dogDiet = dogDiet;
+    public void setPetDiet(String petDiet) {
+        this.petDiet = petDiet;
     }
 
-    public String getDogHealth() {
-        return dogHealth;
+    public String getPetHealth() {
+        return petHealth;
     }
 
-    public void setDogHealth(String dogHealth) {
-        this.dogHealth = dogHealth;
+    public void setPetHealth(String petHealth) {
+        this.petHealth = petHealth;
     }
 
-    public String getDogBehavior() {
-        return dogBehavior;
+    public String getPetBehavior() {
+        return petBehavior;
     }
 
-    public void setDogBehavior(String dogBehavior) {
-        this.dogBehavior = dogBehavior;
+    public void setPetBehavior(String petBehavior) {
+        this.petBehavior = petBehavior;
     }
 
     public long getCarerId() {

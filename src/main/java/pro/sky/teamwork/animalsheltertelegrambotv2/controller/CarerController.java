@@ -52,7 +52,7 @@ public class CarerController {
     public ResponseEntity<CarerRecord> findCarer(
             @Parameter(description = "ID Опекуна")
             @PathVariable long id,
-            @RequestParam String petType) {
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         return ResponseEntity.ok(this.carerService.findCarer(id, petType));
     }
 
@@ -65,13 +65,14 @@ public class CarerController {
                             examples = {
                                     @ExampleObject(
                                             value = "{\"id\": 0,"
+                                                    + "\"petType\": \"кошка/собака\","
                                                     + "\"secondName\": \"Иванов\","
                                                     + "\"firstName\": \"Иван\","
                                                     + "\"patronymic\": \"Иванович\","
                                                     + "\"age\": 30,"
                                                     + "\"phoneNumber\": \"+7(999)1234567\","
                                                     + "\"passportNumber\": \"1234 123456\","
-                                                    + "\"dogId\": \"1\""
+                                                    + "\"petId\": \"1\""
                                                     + "}"
                                     )
                             }
@@ -102,7 +103,7 @@ public class CarerController {
     public ResponseEntity<?> deleteCarer(
             @Parameter(description = "ID Опекуна")
             @PathVariable long id,
-            @RequestParam String petType) {
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         this.carerService.deleteCarer(id, petType);
         return ResponseEntity.ok().build();
     }
@@ -115,7 +116,7 @@ public class CarerController {
     public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
             @RequestParam String phone,
-            @RequestParam String petType) {
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone, petType));
     }
 
@@ -124,7 +125,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping
-    public ResponseEntity<List<CarerRecord>> findAllCarers(@RequestParam String petType) {
+    public ResponseEntity<List<CarerRecord>> findAllCarers(@RequestParam(defaultValue = "кошка/собака") String petType) {
         return ResponseEntity.ok(this.carerService.findAllCarers(petType));
     }
 

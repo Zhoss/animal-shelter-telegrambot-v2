@@ -2,10 +2,21 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -34,7 +45,7 @@ public class AgreementController {
     @GetMapping("/{id}")
     public ResponseEntity<AgreementRecord> findAgreementById(
             @PathVariable Long id,
-            @RequestParam String petType) {
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         return ResponseEntity.ok(agreementService.findAgreementById(id, petType));
     }
 
@@ -55,7 +66,7 @@ public class AgreementController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAgreementById(
             @PathVariable long id,
-            @RequestParam String petType) {
+            @RequestParam(defaultValue = "кошка/собака") String petType) {
         agreementService.deleteAgreement(id, petType);
         return ResponseEntity.ok().build();
     }
@@ -65,8 +76,20 @@ public class AgreementController {
             tags = "Договор о принятии"
     )
     @GetMapping
-    public ResponseEntity<List<AgreementRecord>> findAllAgreements(@RequestParam String petType) {
+    public ResponseEntity<List<AgreementRecord>> findAllAgreements(@RequestParam(defaultValue = "кошка/собака") String petType) {
         return ResponseEntity.ok(this.agreementService.findAllAgreements(petType));
+    }
+
+    @Operation(
+            summary = "Изменение даты окончания испытательного срока договора о принятии",
+            tags = "Договор о принятии"
+    )
+    @PatchMapping("/{id}")
+    public ResponseEntity<AgreementRecord> changeProbationEndData(@PathVariable long id,
+                                                                  @RequestParam LocalDate localDate,
+                                                                  @RequestParam(defaultValue = "кошка/собака") String petType) {
+
+        return ResponseEntity.ok(this.agreementService.changeProbationEndData(id, localDate, petType));
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)

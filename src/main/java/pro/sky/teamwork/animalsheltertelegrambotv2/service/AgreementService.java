@@ -14,6 +14,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class AgreementService {
     public AgreementRecord addAgreement(AgreementRecord agreementRecord) {
         if (agreementRecord != null) {
             Agreement agreement = this.modelMapper.mapToAgreementEntity(agreementRecord);
-            if (agreementRecord.getPetType().equals("кошка")) {
+            if (agreementRecord.getPetType().equals(Pet.CAT)) {
                 CatAgreement catAgreement = this.catAgreementRepository.save((CatAgreement) agreement);
                 Cat cat = catAgreement.getCarer().getCat();
                 cat.setTaken(true);
@@ -50,7 +51,7 @@ public class AgreementService {
                 this.catRepository.save(cat);
                 LOGGER.info("Was invoked method for adding cat agreement");
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (agreementRecord.getPetType().equals("собака")) {
+            } else if (agreementRecord.getPetType().equals(Pet.DOG)) {
                 DogAgreement dogAgreement = this.dogAgreementRepository.save((DogAgreement) agreement);
                 Dog dog = dogAgreement.getCarer().getDog();
                 dog.setTaken(true);
@@ -71,12 +72,12 @@ public class AgreementService {
     @Transactional(readOnly = true)
     public AgreementRecord findAgreementById(long id, String petType) {
         if (id > 0) {
-            if (petType.equals("кошка")) {
+            if (petType.equals(Pet.CAT)) {
                 CatAgreement catAgreement = catAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 LOGGER.info("Was invoked method to find cat agreement by id");
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (petType.equals("собака")) {
+            } else if (petType.equals(Pet.DOG)) {
                 DogAgreement dogAgreement = dogAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 LOGGER.info("Was invoked method to find dog agreement by id");
@@ -95,11 +96,11 @@ public class AgreementService {
     public AgreementRecord editAgreement(AgreementRecord agreementRecord) {
         if (agreementRecord != null) {
             Agreement agreement = this.modelMapper.mapToAgreementEntity(agreementRecord);
-            if (agreementRecord.getPetType().equals("кошка")) {
+            if (agreementRecord.getPetType().equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to edit cat agreement");
                 CatAgreement catAgreement = this.catAgreementRepository.save((CatAgreement) agreement);
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (agreementRecord.getPetType().equals("собака")) {
+            } else if (agreementRecord.getPetType().equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to edit dog agreement");
                 DogAgreement dogAgreement = this.dogAgreementRepository.save((DogAgreement) agreement);
                 return modelMapper.mapToAgreementRecord(dogAgreement);
@@ -116,10 +117,10 @@ public class AgreementService {
     @Transactional
     public void deleteAgreement(long id, String petType) {
         if (id > 0) {
-            if (petType.equals("кошка")) {
+            if (petType.equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to delete cat agreement");
                 catAgreementRepository.deleteById(id);
-            } else if (petType.equals("собака")) {
+            } else if (petType.equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to delete dog agreement");
                 dogAgreementRepository.deleteById(id);
             } else {
@@ -134,7 +135,7 @@ public class AgreementService {
 
     @Transactional(readOnly = true)
     public List<AgreementRecord> findAllAgreements(String petType) {
-        if (petType.equals("кошка")) {
+        if (petType.equals(Pet.CAT)) {
             List<CatAgreement> catAgreements = this.catAgreementRepository.findAll();
             if (!catAgreements.isEmpty()) {
                 LOGGER.info("Was invoked method to find all cat agreements");
@@ -145,7 +146,7 @@ public class AgreementService {
                 LOGGER.info("Was invoked method to find all cat agreements, but cat agreements were not found");
                 return new ArrayList<>();
             }
-        } else if (petType.equals("собака")) {
+        } else if (petType.equals(Pet.DOG)) {
             List<DogAgreement> dogAgreements = this.dogAgreementRepository.findAll();
             if (!dogAgreements.isEmpty()) {
                 LOGGER.info("Was invoked method to find all agreements");
@@ -162,30 +163,86 @@ public class AgreementService {
         }
     }
 
-//    @Transactional(readOnly = true)
-//    public List<Agreement> findAllAgreementsWithProbationByDate(LocalDate localDate) {
-//        if (localDate != null) {
-//            List<Agreement> dogAgreements = this.dogAgreementRepository.findAll().stream()
-//                    .filter(e -> localDate.isBefore(e.getProbationEndData()))
-//                    .toList();
-//            if (!dogAgreements.isEmpty()) {
-//                LOGGER.info("Was invoked method to find all agreements with probation for the specified date = " +
-//                        localDate);
-//                return dogAgreements;
-//            } else {
-//                LOGGER.info("Was invoked method to find all agreements with probation for the specified date = " +
-//                        localDate + ", but agreements were not found");
-//                return new ArrayList<>();
-//            }
-//        } else {
-//            LOGGER.error("Input object 'localDate' is null");
-//            throw new IllegalArgumentException("Требуется указать корректную дату");
-//        }
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public List<Agreement> findAgreements() {
-//        LOGGER.info("Was invoked method to find all agreements from Timer");
-//        return this.dogAgreementRepository.findAll();
-//    }
+    @Transactional(readOnly = true)
+    @SuppressWarnings("unchecked")
+    public <T extends Agreement> List<T> findAllAgreementsWithProbationByDate(LocalDate localDate, String petType) {
+        if (localDate != null) {
+            if (petType.equals(Pet.CAT)) {
+                List<CatAgreement> catAgreements = this.catAgreementRepository.findAll().stream()
+                        .filter(e -> localDate.isBefore(e.getProbationEndData()))
+                        .toList();
+                if (!catAgreements.isEmpty()) {
+                    LOGGER.info("Was invoked method to find all cat agreements with probation for the specified date = " +
+                            localDate);
+                    return (List<T>) catAgreements;
+                } else {
+                    LOGGER.info("Was invoked method to find all cat agreements with probation for the specified date = " +
+                            localDate + ", but cat agreements were not found");
+                    return new ArrayList<>();
+                }
+            } else if (petType.equals(Pet.DOG)) {
+                List<DogAgreement> dogAgreements = this.dogAgreementRepository.findAll().stream()
+                        .filter(e -> localDate.isBefore(e.getProbationEndData()))
+                        .toList();
+                if (!dogAgreements.isEmpty()) {
+                    LOGGER.info("Was invoked method to find all dog agreements with probation for the specified date = " +
+                            localDate);
+                    return (List<T>) dogAgreements;
+                } else {
+                    LOGGER.info("Was invoked method to find all dog agreements with probation for the specified date = " +
+                            localDate + ", but dog agreements were not found");
+                    return new ArrayList<>();
+                }
+            } else {
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
+            }
+        } else {
+            LOGGER.error("Input object 'localDate' is null");
+            throw new IllegalArgumentException("Требуется указать корректную дату");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @SuppressWarnings("unchecked")
+    public <T extends Agreement> List<T> findAgreementsWithEndingProbation(String petType) {
+        if (petType.equals(Pet.CAT)) {
+            LOGGER.info("Was invoked method to find all agreements from Timer");
+            return (List<T>) this.catAgreementRepository.findAll().stream()
+                    .filter(e -> e.getProbationEndData().minusDays(2).equals(LocalDate.now()))
+                    .toList();
+        } else if (petType.equals(Pet.DOG)) {
+            LOGGER.info("Was invoked method to find all agreements from Timer");
+            return (List<T>) this.dogAgreementRepository.findAll().stream()
+                    .filter(e -> e.getProbationEndData().minusDays(2).equals(LocalDate.now()))
+                    .toList();
+        } else {
+            LOGGER.error("Wrong pet type");
+            throw new IllegalArgumentException("Тип животного указан не верно");
+        }
+    }
+
+    public AgreementRecord changeProbationEndData(long id, LocalDate localDate, String petType) {
+        if (id > 0) {
+            if (petType.equals(Pet.CAT)) {
+                CatAgreement catAgreement = this.catAgreementRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
+                catAgreement.setProbationEndData(localDate);
+                this.catAgreementRepository.save(catAgreement);
+                return this.modelMapper.mapToAgreementRecord(catAgreement);
+            } else if (petType.equals(Pet.DOG)) {
+                DogAgreement dogAgreement = this.dogAgreementRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
+                dogAgreement.setProbationEndData(localDate);
+                this.dogAgreementRepository.save(dogAgreement);
+                return this.modelMapper.mapToAgreementRecord(dogAgreement);
+            } else {
+                LOGGER.error("Wrong pet type");
+                throw new IllegalArgumentException("Тип животного указан не верно");
+            }
+        } else {
+            LOGGER.error("Input id = " + id + " for changing agreement end probation date is incorrect");
+            throw new IllegalArgumentException("Требуется указать корректный id договора");
+        }
+    }
 }

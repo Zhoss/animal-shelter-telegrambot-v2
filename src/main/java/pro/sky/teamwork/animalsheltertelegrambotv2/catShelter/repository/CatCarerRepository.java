@@ -8,5 +8,4 @@ import java.util.Optional;
 public interface CatCarerRepository extends JpaRepository<CatCarer, Long> {
     Optional<CatCarer> findCatCarerByPhoneNumber(String phoneNumber);
     Optional<CatCarer> findCatCarerByChatId(long chatId);
-    Optional<CatCarer> findCatCarerByCatId(long catId);
 }

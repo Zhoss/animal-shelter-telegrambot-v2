@@ -1,6 +1,8 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
 public class Pet {
+    public static final String CAT = "кошка";
+    public static final String DOG = "собака";
     private long id;
     private String name;
     private String breed;

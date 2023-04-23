@@ -63,7 +63,7 @@ public class ModelMapper {
         carerRecord.setPhoneNumber(carer.getPhoneNumber());
         carerRecord.setPassportNumber(carer.getPassportNumber());
         if (carer.getClass().equals(CatCarer.class)) {
-            carerRecord.setPetType("кошка");
+            carerRecord.setPetType(Pet.CAT);
             CatCarer catCarer = (CatCarer) carer;
             Cat cat = catCarer.getCat();
             if (cat != null) {
@@ -72,7 +72,7 @@ public class ModelMapper {
                 carerRecord.setPetId(0L);
             }
         } else if (carer.getClass().equals(DogCarer.class)) {
-            carerRecord.setPetType("собака");
+            carerRecord.setPetType(Pet.DOG);
             DogCarer dogCarer = (DogCarer) carer;
             Dog dog = dogCarer.getDog();
             if (dog != null) {
@@ -85,35 +85,33 @@ public class ModelMapper {
     }
 
     public void updateCarer(CarerRecord carerRecord, Carer carer) {
-        if (carerRecord.getPetType().equals("кошка")) {
+        if (carerRecord.getPetType().equals(Pet.CAT)) {
             CatCarer catCarer = (CatCarer) carer;
-            catCarer.setId(carerRecord.getId());
-            catCarer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
-                    StringUtils.capitalize(carerRecord.getFirstName().toLowerCase()) + " " +
-                    StringUtils.capitalize(carerRecord.getPatronymic().toLowerCase()));
-            catCarer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
-            catCarer.setPhoneNumber(carerRecord.getPhoneNumber());
-            catCarer.setPassportNumber(carerRecord.getPassportNumber());
+            update(carerRecord, catCarer);
             Cat cat = catRepository.findById(carerRecord.getPetId())
                     .orElseThrow(CatNotFoundException::new);
             catCarer.setCat(cat);
-        } else if (carerRecord.getPetType().equals("собака")) {
+        } else if (carerRecord.getPetType().equals(Pet.DOG)) {
             DogCarer dogCarer = (DogCarer) carer;
-            dogCarer.setId(carerRecord.getId());
-            dogCarer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
-                    StringUtils.capitalize(carerRecord.getFirstName().toLowerCase()) + " " +
-                    StringUtils.capitalize(carerRecord.getPatronymic().toLowerCase()));
-            dogCarer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
-            dogCarer.setPhoneNumber(carerRecord.getPhoneNumber());
-            dogCarer.setPassportNumber(carerRecord.getPassportNumber());
+            update(carerRecord, dogCarer);
             Dog dog = dogRepository.findById(carerRecord.getPetId())
                     .orElseThrow(DogNotFoundException::new);
             dogCarer.setDog(dog);
         }
     }
 
+    private static void update(CarerRecord carerRecord, Carer carer) {
+        carer.setId(carerRecord.getId());
+        carer.setFullName(StringUtils.capitalize(carerRecord.getSecondName().toLowerCase()) + " " +
+                StringUtils.capitalize(carerRecord.getFirstName().toLowerCase()) + " " +
+                StringUtils.capitalize(carerRecord.getPatronymic().toLowerCase()));
+        carer.setBirthYear(LocalDate.now().getYear() - carerRecord.getAge());
+        carer.setPhoneNumber(carerRecord.getPhoneNumber());
+        carer.setPassportNumber(carerRecord.getPassportNumber());
+    }
+
     public Pet mapToPetEntity(PetRecord petRecord) {
-        if (petRecord.getPetType().equals("кошка")) {
+        if (petRecord.getPetType().equals(Pet.CAT)) {
             Cat cat = new Cat();
             cat.setName(StringUtils.capitalize(petRecord.getName().toLowerCase()));
             cat.setBreed(petRecord.getBreed());
@@ -121,7 +119,7 @@ public class ModelMapper {
             cat.setAge(petRecord.getAge());
             cat.setFeatures(petRecord.getFeatures());
             return cat;
-        } else if (petRecord.getPetType().equals("собака")) {
+        } else if (petRecord.getPetType().equals(Pet.DOG)) {
             Dog dog = new Dog();
             dog.setName(StringUtils.capitalize(petRecord.getName().toLowerCase()));
             dog.setBreed(petRecord.getBreed());
@@ -149,15 +147,15 @@ public class ModelMapper {
         petRecord.setAge(pet.getAge());
         petRecord.setFeatures(pet.getFeatures());
         if (pet.getClass().equals(Cat.class)) {
-            petRecord.setPetType("кошка");
+            petRecord.setPetType(Pet.CAT);
         } else if (pet.getClass().equals(Dog.class)) {
-            petRecord.setPetType("собака");
+            petRecord.setPetType(Pet.DOG);
         }
         return petRecord;
     }
 
     public Agreement mapToAgreementEntity(AgreementRecord agreementRecord) {
-        if (agreementRecord.getPetType().equals("кошка")) {
+        if (agreementRecord.getPetType().equals(Pet.CAT)) {
             CatAgreement catAgreement = new CatAgreement();
             catAgreement.setId(agreementRecord.getId());
             catAgreement.setNumber(agreementRecord.getNumber());
@@ -167,7 +165,7 @@ public class ModelMapper {
                     .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
             catAgreement.setCarer(catCarer);
             return catAgreement;
-        } else if (agreementRecord.getPetType().equals("собака")) {
+        } else if (agreementRecord.getPetType().equals(Pet.DOG)) {
             DogAgreement dogAgreement = new DogAgreement();
             dogAgreement.setId(agreementRecord.getId());
             dogAgreement.setNumber(agreementRecord.getNumber());
@@ -189,11 +187,11 @@ public class ModelMapper {
         agreementRecord.setConclusionDate(agreement.getConclusionDate());
         agreementRecord.setProbationEndData(agreement.getProbationEndData());
         if (agreement.getClass().equals(CatAgreement.class)) {
-            agreementRecord.setPetType("кошка");
+            agreementRecord.setPetType(Pet.CAT);
             CatAgreement catAgreement = (CatAgreement) agreement;
             agreementRecord.setCarerId(catAgreement.getCarer().getId());
         } else if (agreement.getClass().equals(DogAgreement.class)) {
-            agreementRecord.setPetType("собака");
+            agreementRecord.setPetType(Pet.DOG);
             DogAgreement dogAgreement = (DogAgreement) agreement;
             agreementRecord.setCarerId(dogAgreement.getCarer().getId());
         }
@@ -203,17 +201,21 @@ public class ModelMapper {
     public DailyReportRecord mapToDailyRecordRecord(DailyReport dailyReport) {
         DailyReportRecord dailyReportRecord = new DailyReportRecord();
         dailyReportRecord.setId(dailyReport.getId());
-        dailyReportRecord.setReportDate(dailyReport.getReportDate());
-        dailyReportRecord.setDogDiet(dailyReport.getDogDiet());
-        dailyReportRecord.setDogHealth(dailyReport.getDogHealth());
-        dailyReportRecord.setDogBehavior(dailyReport.getDogBehavior());
         if (dailyReport.getClass().equals(CatDailyReport.class)) {
-            dailyReportRecord.setPetType("кошка");
             CatDailyReport catDailyReport = (CatDailyReport) dailyReport;
+            dailyReportRecord.setPetType(Pet.CAT);
+            dailyReportRecord.setReportDate(catDailyReport.getReportDate());
+            dailyReportRecord.setPetDiet(catDailyReport.getCatDiet());
+            dailyReportRecord.setPetHealth(catDailyReport.getCatHealth());
+            dailyReportRecord.setPetBehavior(catDailyReport.getCatBehavior());
             dailyReportRecord.setCarerId(catDailyReport.getCarer().getId());
         } else if (dailyReport.getClass().equals(DogDailyReport.class)) {
-            dailyReportRecord.setPetType("собака");
             DogDailyReport dogDailyReport = (DogDailyReport) dailyReport;
+            dailyReportRecord.setPetType(Pet.DOG);
+            dailyReportRecord.setReportDate(dogDailyReport.getReportDate());
+            dailyReportRecord.setPetDiet(dogDailyReport.getDogDiet());
+            dailyReportRecord.setPetHealth(dogDailyReport.getDogHealth());
+            dailyReportRecord.setPetBehavior(dogDailyReport.getDogBehavior());
             dailyReportRecord.setCarerId(dogDailyReport.getCarer().getId());
         }
         return dailyReportRecord;

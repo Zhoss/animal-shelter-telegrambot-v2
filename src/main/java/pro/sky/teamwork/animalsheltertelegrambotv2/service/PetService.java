@@ -41,11 +41,11 @@ public class PetService {
     public PetRecord addPet(PetRecord petRecord) {
         if (petRecord != null) {
             Pet pet = this.modelMapper.mapToPetEntity(petRecord);
-            if (petRecord.getPetType().equals("кошка")) {
+            if (petRecord.getPetType().equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method for adding cat");
                 Cat cat = this.catRepository.save((Cat) pet);
                 return this.modelMapper.mapToPetRecord(cat);
-            } else if (petRecord.getPetType().equals("собака")) {
+            } else if (petRecord.getPetType().equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method for adding dog");
                 Dog dog = this.dogRepository.save((Dog) pet);
                 return this.modelMapper.mapToPetRecord(dog);
@@ -72,12 +72,12 @@ public class PetService {
         if (id < 0) {
             LOGGER.error("Input id = " + id + " for getting pet is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id питомца");
-        } else if (petType.equals("кошка")) {
+        } else if (petType.equals(Pet.CAT)) {
             LOGGER.info("Was invoked method to find cat");
             Cat cat = this.catRepository.findById(id)
                     .orElseThrow(CatNotFoundException::new);
             return this.modelMapper.mapToPetRecord(cat);
-        } else if (petType.equals("собака")) {
+        } else if (petType.equals(Pet.DOG)) {
             LOGGER.info("Was invoked method to find dog");
             Dog dog = this.dogRepository.findById(id)
                     .orElseThrow(DogNotFoundException::new);
@@ -100,11 +100,11 @@ public class PetService {
     public PetRecord editDog(PetRecord petRecord) {
         if (petRecord != null) {
             Pet pet = this.modelMapper.mapToPetEntity(petRecord);
-            if (petRecord.getPetType().equals("кошка")) {
+            if (petRecord.getPetType().equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to edit cat");
                 Cat cat = this.catRepository.save((Cat) pet);
                 return this.modelMapper.mapToPetRecord(cat);
-            } else if (petRecord.getPetType().equals("собака")) {
+            } else if (petRecord.getPetType().equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to edit dog");
                 Dog dog = this.dogRepository.save((Dog) pet);
                 return this.modelMapper.mapToPetRecord(dog);
@@ -132,10 +132,10 @@ public class PetService {
             LOGGER.error("Input id = " + id + " for deleting pet is incorrect");
             throw new IllegalArgumentException("Требуется указать корректный id питомца");
         } else {
-            if (petType.equals("кошка")) {
+            if (petType.equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to delete cat");
                 this.catRepository.deleteById(id);
-            } else if (petType.equals("собака")) {
+            } else if (petType.equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to delete dog");
                 this.dogRepository.deleteById(id);
             } else {
@@ -147,7 +147,7 @@ public class PetService {
 
     @Transactional(readOnly = true)
     public List<PetRecord> findAllPets(String petType) {
-        if (petType.equals("кошка")) {
+        if (petType.equals(Pet.CAT)) {
             List<Cat> cats = this.catRepository.findAll();
             if (!cats.isEmpty()) {
                 LOGGER.info("Was invoked method to find all cats");
@@ -158,7 +158,7 @@ public class PetService {
                 LOGGER.info("Was invoked method to find all cats, but cats were not found");
                 return new ArrayList<>();
             }
-        } else if (petType.equals("собака")) {
+        } else if (petType.equals(Pet.DOG)) {
             List<Dog> dogs = this.dogRepository.findAll();
             if (!dogs.isEmpty()) {
                 LOGGER.info("Was invoked method to find all dogs");
@@ -178,7 +178,7 @@ public class PetService {
     @Transactional
     public void changeIsTakenStatus(long id, String petType, boolean isTaken) {
         if (id > 0) {
-            if (petType.equals("кошка")) {
+            if (petType.equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to change \"is taken\" status of cat");
                 Cat cat = this.catRepository.findById(id).orElseThrow(CatNotFoundException::new);
                 if (isTaken) {
@@ -193,7 +193,7 @@ public class PetService {
                         throw new IllegalArgumentException("Кошка не может быть НЕ взята из приюта и на испытательном сроке");
                     }
                 }
-            } else if (petType.equals("собака")) {
+            } else if (petType.equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to change \"is taken\" status of dog");
                 Dog dog = this.dogRepository.findById(id).orElseThrow(DogNotFoundException::new);
                 if (isTaken) {
@@ -221,7 +221,7 @@ public class PetService {
     @Transactional
     public void changeOnProbationStatus(long id, String petType, boolean onProbation) {
         if (id > 0) {
-            if (petType.equals("кошка")) {
+            if (petType.equals(Pet.CAT)) {
                 LOGGER.info("Was invoked method to change \"on probation\" status of cat");
                 Cat cat = this.catRepository.findById(id).orElseThrow(CatNotFoundException::new);
                 if (onProbation) {
@@ -236,7 +236,7 @@ public class PetService {
                     cat.setOnProbation(false);
                     this.catRepository.save(cat);
                 }
-            } else if (petType.equals("собака")) {
+            } else if (petType.equals(Pet.DOG)) {
                 LOGGER.info("Was invoked method to change \"on probation\" status of dog");
                 Dog dog = this.dogRepository.findById(id).orElseThrow(DogNotFoundException::new);
                 if (onProbation) {
