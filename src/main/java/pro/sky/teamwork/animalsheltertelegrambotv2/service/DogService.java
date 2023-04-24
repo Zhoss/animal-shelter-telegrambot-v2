@@ -106,10 +106,10 @@ public class DogService {
 
     @Transactional(readOnly = true)
     public List<DogRecord> findAllDogs() {
-        List<Dog> dogRecords = this.dogRepository.findAll();
-        if (!dogRecords.isEmpty()) {
+        List<Dog> dogs = this.dogRepository.findAll();
+        if (!dogs.isEmpty()) {
             LOGGER.info("Was invoked method to find all dogs");
-            return dogRecords.stream()
+            return dogs.stream()
                     .map(this.modelMapper::mapToDogRecord)
                     .toList();
         } else {

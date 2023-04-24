@@ -1,6 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class AgreementRecord {
     private long id;
@@ -51,4 +52,5 @@ public class AgreementRecord {
     public void setCarerId(long carerId) {
         this.carerId = carerId;
     }
+
 }
