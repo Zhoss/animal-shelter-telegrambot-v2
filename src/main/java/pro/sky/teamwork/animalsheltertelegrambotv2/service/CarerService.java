@@ -50,7 +50,8 @@ public class CarerService {
             return carer;
         } else {
             LOGGER.error("Carer's full name or phone number is empty");
-            throw new IllegalArgumentException("Требуется указать корректные данные: имя опекуна, телефонный номер опекуна");
+            throw new IllegalArgumentException(
+                    "Требуется указать корректные данные: имя опекуна, телефонный номер опекуна");
         }
     }
 
@@ -156,10 +157,10 @@ public class CarerService {
 
     @Transactional(readOnly = true)
     public List<CarerRecord> findAllCarers() {
-        List<Carer> carerRecords = this.carerRepository.findAll();
-        if (!carerRecords.isEmpty()) {
+        List<Carer> carers = this.carerRepository.findAll();
+        if (!carers.isEmpty()) {
             LOGGER.info("Was invoked method to find all carers");
-            return carerRecords.stream()
+            return carers.stream()
                     .map(this.modelMapper::mapToCarerRecord)
                     .toList();
         } else {
@@ -168,9 +169,9 @@ public class CarerService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Carer findCarerByDogId(long dogId) {
-        return carerRepository.findCarerByDogId(dogId)
-                .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
-    }
+//    @Transactional(readOnly = true)
+//    public Carer findCarerByDogId(long dogId) {
+//        return carerRepository.findCarerByDogId(dogId)
+//                .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
+//    }
 }

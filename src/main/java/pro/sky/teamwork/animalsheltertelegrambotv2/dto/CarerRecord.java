@@ -1,5 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import java.util.Objects;
+
 /**
  * Клас описывающий поля для приема информации по <b> опекуну </b>, работает в Swagger.
  * <br>Параметры:
@@ -85,5 +87,18 @@ public class CarerRecord {
 
     public void setDogId(long dogId) {
         this.dogId = dogId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CarerRecord that = (CarerRecord) o;
+        return getId() == that.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

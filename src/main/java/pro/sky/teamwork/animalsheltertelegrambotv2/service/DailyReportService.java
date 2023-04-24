@@ -61,7 +61,9 @@ public class DailyReportService {
     public DailyReportRecord findDailyReportByCarerAndDate(Long carerId, LocalDate reportDate) {
         if (carerId > 0 && reportDate != null) {
             LOGGER.info("Was invoked method to find daily report by carer id and the specified date = " + reportDate);
-            return this.modelMapper.mapToDailyRecordRecord(this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate));
+            return this.modelMapper.mapToDailyRecordRecord(
+                    this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(
+                            carerId, reportDate));
         } else {
             LOGGER.error("Input carer id = " + carerId + " is incorrect and/or input object 'reportDate' is null");
             throw new IllegalArgumentException("Требуется указать корректный id опекуна и/или корректную дату");
@@ -73,7 +75,8 @@ public class DailyReportService {
         if (carerId > 0 && reportDate != null) {
             LOGGER.info("Was invoked method to find daily report by carer id = " + carerId + " and the specified date = " +
                     reportDate);
-            return this.dailyReportRepository.findDailyReportByCarerIdAndReportDate(carerId, reportDate);
+            return this.dailyReportRepository
+                    .findDailyReportByCarerIdAndReportDate(carerId, reportDate);
         } else {
             LOGGER.error("Input carer id = " + carerId + " is incorrect and/or input object 'reportDate' is null");
             throw new IllegalArgumentException("Требуется указать корректный id опекуна и/или корректную дату");
@@ -103,7 +106,8 @@ public class DailyReportService {
     }
 
     public List<DailyReportRecord> findDailyReportsByDate(LocalDate localDate) {
-        List<DailyReport> dailyReports = this.dailyReportRepository.findDailyReportsByReportDate(localDate);
+        List<DailyReport> dailyReports = this.dailyReportRepository
+                .findDailyReportsByReportDate(localDate);
         return dailyReports.stream()
                 .map(this.modelMapper::mapToDailyRecordRecord)
                 .collect(Collectors.toList());
