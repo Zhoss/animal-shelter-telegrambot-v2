@@ -60,4 +60,5 @@ public class DailyReportRecord {
     public void setCarerId(long carerId) {
         this.carerId = carerId;
     }
+
 }

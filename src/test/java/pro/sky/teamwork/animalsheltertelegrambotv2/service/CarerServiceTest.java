@@ -1,14 +1,11 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cglib.core.Local;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
@@ -21,8 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CarerServiceTest {
@@ -81,7 +77,7 @@ class CarerServiceTest {
     }
 
     @Test
-    void ShouldReturnCarerWhenAddCarer() {
+    void shouldReturnCarerWhenAddCarer() {
 
         when(carerRepositoryMock.save(carer)).thenReturn(carer);
         carer.setId(0);
@@ -90,45 +86,45 @@ class CarerServiceTest {
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenAddCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenAddCarer() {
 
         assertThrows(IllegalArgumentException.class,
-                ()->carerServiceOut.addCarer("", age, phoneNumber, chatId));
+                () -> carerServiceOut.addCarer("", age, phoneNumber, chatId));
     }
 
     @Test
-    void ShouldReturnCarerWhenSaveCarer() {
+    void shouldReturnCarerWhenSaveCarer() {
 
         when(carerRepositoryMock.save(carer)).thenReturn(carer);
         assertEquals(carer, carerServiceOut.saveCarer(carer));
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenSaveCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenSaveCarer() {
 
         assertThrows(IllegalArgumentException.class,
                 () -> carerServiceOut.saveCarer(null));
     }
 
     @Test
-    void ShouldReturnCarerRecordWhenFindCarer() {
+    void shouldReturnCarerRecordWhenFindCarer() {
 
         when(carerRepositoryMock.findById(carer.getId())).thenReturn(Optional.of(carer));
 
         when(modelMapperMock.mapToCarerRecord(carer)).thenReturn(carerRecord1);
 
-        assertEquals(carerRecord1,carerServiceOut.findCarer(carer.getId()));
+        assertEquals(carerRecord1, carerServiceOut.findCarer(carer.getId()));
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenFindCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenFindCarer() {
 
         assertThrows(IllegalArgumentException.class,
                 () -> carerServiceOut.findCarer(-1));
     }
 
     @Test
-    void ShouldReturnCarerNotFoundExceptionWhenFindCarerWithWrongId() {
+    void shouldReturnCarerNotFoundExceptionWhenFindCarerWithWrongId() {
 
         when(carerRepositoryMock.findById(carer.getId())).thenReturn(Optional.empty());
 
@@ -137,43 +133,57 @@ class CarerServiceTest {
     }
 
     @Test
-    void ShouldReturnCarerWhenFindCarerByChatId() {
+    void shouldReturnCarerWhenFindCarerByChatId() {
 
         when(carerRepositoryMock.findCarerByChatId(carer.getChatId())).thenReturn(Optional.of(carer));
 
-        assertEquals(carer,carerServiceOut.findCarerByChatId(carer.getChatId()));
+        assertEquals(carer, carerServiceOut.findCarerByChatId(carer.getChatId()));
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenFindCarerByChatIdWithNullId() {
+    void shouldReturnIllegalArgumentExceptionWhenFindCarerByChatIdWithNullId() {
 
         assertThrows(IllegalArgumentException.class,
                 () -> carerServiceOut.findCarerByChatId(0));
     }
 
-    @Disabled
+    //    @Disabled
     @Test
-    void editCarer() {
+    void shouldReturnCarerRecordWhenEditCarer() {
 
-        when(carerRepositoryMock.findById(carer.getId())).thenReturn(Optional.of(carer));
+        when(carerRepositoryMock.findById(carerRecord1.getId()))
+                .thenReturn(Optional.of(carer));
 
+        modelMapperMock.updateCarer(carerRecord1, carer);
         verify(modelMapperMock).updateCarer(carerRecord1, carer);
 
+        when(carerRepositoryMock.save(any(Carer.class))).thenReturn(carer);
+
         when(modelMapperMock.mapToCarerRecord(carer)).thenReturn(carerRecord1);
+
+        assertEquals(carerRecord1, carerServiceOut.editCarer(carerRecord1));
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenEditCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenEditCarer() {
 
         assertThrows(IllegalArgumentException.class,
                 () -> carerServiceOut.editCarer(null));
     }
 
     @Test
-    @Disabled
-    void deleteCarer() {
+//    @Disabled
+    void shouldInvokeDeleteCarer() {
 
-        verify(carerRepositoryMock).deleteById(any(long.class));
+        carerServiceOut.deleteCarer(carer.getId());
+        verify(carerRepositoryMock).deleteById(carer.getId());
+    }
+
+    @Test
+    void shouldIReturnIllegalArgumentExceptionWhenDeleteCarerWithNegativeId() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.deleteCarer(-1));
     }
 
     @Test

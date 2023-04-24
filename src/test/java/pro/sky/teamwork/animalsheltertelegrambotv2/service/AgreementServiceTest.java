@@ -115,7 +115,7 @@ class AgreementServiceTest {
     }
 
     @Test
-    void ShouldReturnAgreementRecordWhenAddAgreement() {
+    void shouldReturnAgreementRecordWhenAddAgreement() {
 
         when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
 
@@ -129,13 +129,13 @@ class AgreementServiceTest {
     }
 
     @Test
-    void ShouldReturnNullPointerExceptionWhenAddAgreement() {
+    void shouldReturnNullPointerExceptionWhenAddAgreement() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> agreementServiceOut.addAgreement(null));
     }
 
     @Test
-    void ShouldReturnAgreementRecordWhenFindAgreementById() {
+    void shouldReturnAgreementRecordWhenFindAgreementById() {
 
         when(agreementRepositoryMock.findById(100L)).thenReturn(Optional.of(agreement));
 
@@ -145,18 +145,18 @@ class AgreementServiceTest {
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenFindAgreementById() {
+    void shouldReturnIllegalArgumentExceptionWhenFindAgreementById() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 ()->agreementServiceOut.findAgreementById(0));
     }
    @Test
-    void ShouldReturnIllegalArgumentExceptionWhenFindAgreementById2() {
+    void shouldReturnIllegalArgumentExceptionWhenFindAgreementById2() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 ()->agreementServiceOut.findAgreementById(-1));
     }
 
     @Test
-    void ShouldReturnAgreementRecordWhenEditAgreement() {
+    void shouldReturnAgreementRecordWhenEditAgreement() {
         when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
 
         when(agreementRepositoryMock.save(agreement)).thenReturn(agreement);
@@ -167,16 +167,24 @@ class AgreementServiceTest {
     }
 
     @Test
-    void ShouldReturnIllegalArgumentExceptionWhenEditAgreement() {
+    void shouldReturnIllegalArgumentExceptionWhenEditAgreement() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> agreementServiceOut.editAgreement(null));
     }
 
     @Test
-    @Disabled
-    void deleteAgreement() {
-//        when(agreementRepositoryMock.existsById(any(long.class))).thenReturn(true);
+//    @Disabled
+    void shouldInvokeDeleteAgreement() {
+
+        agreementServiceOut.deleteAgreement(agreement.getId());
         Mockito.verify(agreementRepositoryMock).deleteById(agreement.getId());
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenDeleteAgreementWithWrongId() {
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                ()-> agreementServiceOut.deleteAgreement(-1));
     }
 
     @Test

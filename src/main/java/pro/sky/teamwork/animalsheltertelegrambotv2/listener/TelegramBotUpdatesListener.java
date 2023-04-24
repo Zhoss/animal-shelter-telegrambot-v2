@@ -50,6 +50,7 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 /**
  * Класс описывающий константы и работу класса
  */
+
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
