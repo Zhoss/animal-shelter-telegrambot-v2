@@ -1,11 +1,18 @@
-package pro.sky.teamwork.animalsheltertelegrambotv2;
+package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
+import org.json.JSONObject;
 import org.mockito.ArgumentMatchers;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
+import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DogService;
-import pro.sky.teamwork.animalsheltertelegrambotv2.controller.DogController;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +20,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.ModelMapper;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.postgresql.hostchooser.HostRequirement.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,34 +45,6 @@ public class DogControllerTest {
     private static ObjectMapper mapper = new ObjectMapper();
 
 
-    /*@Test
-    public void testGetDog() throws Exception {  // метод GET #1
-        List<DogRecord> dogs = new ArrayList();
-
-        DogRecord dogTest = new DogRecord();
-
-        dogTest.setId(1);
-        dogTest.setName("тузик");
-        dogTest.setBreed("Двортерьер");
-        dogTest.setCoatColor("Черный");
-        dogTest.setAge(15);
-        dogTest.setFeatures("Носится шо больной");
-
-        dogs.add(dogTest);
-
-        when(dogService.findDog(dogTest.getId()))
-                .thenReturn(dogTest);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/dog/{id}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.name", Matchers.equalTo("тузик")))
-                .andExpect(jsonPath("$.breed", Matchers.equalTo("Двортерьер")))
-                .andExpect(jsonPath("$.coatColor", Matchers.equalTo("Черный")))
-                .andExpect(jsonPath("$.age", Matchers.equalTo(15)))
-                .andExpect(jsonPath("$.features", Matchers.equalTo("Носится шо больной")));
-    }*/
     @Test
     public void testPostDog() throws Exception {
 
@@ -74,10 +62,11 @@ public class DogControllerTest {
         String json = mapper.writeValueAsString(dogTest);
 
         mockMvc.perform(
-                post("/dog")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding("utf-8")
-                        .content(json).accept(MediaType.APPLICATION_JSON))
+                        post("/dog")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .content(json)
+                                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
                 .andExpect(jsonPath("$.name", Matchers.equalTo("Тузик")))
@@ -116,6 +105,7 @@ public class DogControllerTest {
                 .andExpect(jsonPath("$.age", Matchers.equalTo(15)))
                 .andExpect(jsonPath("$.features", Matchers.equalTo("Носится шо больной")));
     }
+
     @Test
     void testDeleteDog() throws Exception {
         mockMvc.perform(
@@ -125,39 +115,50 @@ public class DogControllerTest {
     }
 
     @Test
-    void testGetDog() throws Exception { // метод GET #4 валидный
+    void testGetDog() throws Exception {
         mockMvc.perform(
                         get("/dog/{id}", 1))
                 .andExpect(status().isOk());
         verify(dogService).findDog(1L);
     }
 
-    /*@Test // метод GET #2
-    void testGetDog2() throws Exception {
-        DogRecord dogTest = new DogRecord();
-        when(dogService.getAllDogs()).thenReturn(List.of(new Dog()));
-
+    @Test
+    void testGetAllDogs() throws Exception {
         mockMvc.perform(
                         get("/dog"))
                 .andExpect(status().isOk());
-    }*/
+        verify(dogService).findAllDogs();
+    }
 
-   /* @Test // метод GET #3
-    public void testGetDog3() throws Exception {
-        List dogs = new ArrayList<>(Arrays.asList());
+    @Test
+    void testPatchChangeOnProbationStatus() throws Exception {
 
-        Mockito.when(dogService.getAllDogs()).thenReturn(dogs);
+        mockMvc.perform(
+                        patch("/dog/on-probation/{id}",1)
+                                .param("id", "1")
+                                .param("onProbation", "true")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/dog")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(6)))
-                .andExpect(jsonPath("$[1].id", Matchers.equalTo(0)))
-                .andExpect(jsonPath("$[2].name", Matchers.equalTo("Тузик")))
-                .andExpect(jsonPath("$[3].breed", Matchers.equalTo("Двортерьер")))
-                .andExpect(jsonPath("$[4].coatColor", Matchers.equalTo("Черный")))
-                .andExpect(jsonPath("$[5].age", Matchers.equalTo(15)))
-                .andExpect(jsonPath("$[6].features", Matchers.equalTo("Носится шо больной")));
-    }*/
+        verify(dogService).changeOnProbationStatus(1L, true);
+
+    }
+
+    @Test
+    void testPatchChangeIsTakenStatus() throws Exception {
+
+        mockMvc.perform(
+                        patch("/dog/is-taken/{id}",1)
+                                .param("id", "1")
+                                .param("isTaken", "true")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(dogService).changeIsTakenStatus(1L, true);
+
+    }
 }
