@@ -122,7 +122,7 @@ public class CatDailyReport extends DailyReport {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CatDailyReport that = (CatDailyReport) o;
-        return id == that.id;
+        return Objects.equals(id, that.id);
     }
 
     @Override

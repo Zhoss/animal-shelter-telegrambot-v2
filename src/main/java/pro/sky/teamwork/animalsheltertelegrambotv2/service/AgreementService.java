@@ -14,7 +14,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class AgreementService {
     public AgreementRecord addAgreement(AgreementRecord agreementRecord) {
         if (agreementRecord != null) {
             Agreement agreement = this.modelMapper.mapToAgreementEntity(agreementRecord);
-            if (agreementRecord.getPetType().equals(Pet.CAT)) {
+            if (agreementRecord.getPetType() == PetType.CAT) {
                 CatAgreement catAgreement = this.catAgreementRepository.save((CatAgreement) agreement);
                 Cat cat = catAgreement.getCarer().getCat();
                 cat.setTaken(true);
@@ -51,7 +51,7 @@ public class AgreementService {
                 this.catRepository.save(cat);
                 LOGGER.info("Was invoked method for adding cat agreement");
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (agreementRecord.getPetType().equals(Pet.DOG)) {
+            } else if (agreementRecord.getPetType() == PetType.DOG) {
                 DogAgreement dogAgreement = this.dogAgreementRepository.save((DogAgreement) agreement);
                 Dog dog = dogAgreement.getCarer().getDog();
                 dog.setTaken(true);
@@ -70,14 +70,14 @@ public class AgreementService {
     }
 
     @Transactional(readOnly = true)
-    public AgreementRecord findAgreementById(long id, String petType) {
+    public AgreementRecord findAgreementById(long id, PetType petType) {
         if (id > 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 CatAgreement catAgreement = catAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 LOGGER.info("Was invoked method to find cat agreement by id");
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 DogAgreement dogAgreement = dogAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 LOGGER.info("Was invoked method to find dog agreement by id");
@@ -96,11 +96,11 @@ public class AgreementService {
     public AgreementRecord editAgreement(AgreementRecord agreementRecord) {
         if (agreementRecord != null) {
             Agreement agreement = this.modelMapper.mapToAgreementEntity(agreementRecord);
-            if (agreementRecord.getPetType().equals(Pet.CAT)) {
+            if (agreementRecord.getPetType() == PetType.CAT) {
                 LOGGER.info("Was invoked method to edit cat agreement");
                 CatAgreement catAgreement = this.catAgreementRepository.save((CatAgreement) agreement);
                 return modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (agreementRecord.getPetType().equals(Pet.DOG)) {
+            } else if (agreementRecord.getPetType() == PetType.DOG) {
                 LOGGER.info("Was invoked method to edit dog agreement");
                 DogAgreement dogAgreement = this.dogAgreementRepository.save((DogAgreement) agreement);
                 return modelMapper.mapToAgreementRecord(dogAgreement);
@@ -115,12 +115,12 @@ public class AgreementService {
     }
 
     @Transactional
-    public void deleteAgreement(long id, String petType) {
+    public void deleteAgreement(long id, PetType petType) {
         if (id > 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Was invoked method to delete cat agreement");
                 catAgreementRepository.deleteById(id);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Was invoked method to delete dog agreement");
                 dogAgreementRepository.deleteById(id);
             } else {
@@ -134,8 +134,8 @@ public class AgreementService {
     }
 
     @Transactional(readOnly = true)
-    public List<AgreementRecord> findAllAgreements(String petType) {
-        if (petType.equals(Pet.CAT)) {
+    public List<AgreementRecord> findAllAgreements(PetType petType) {
+        if (petType == PetType.CAT) {
             List<CatAgreement> catAgreements = this.catAgreementRepository.findAll();
             if (!catAgreements.isEmpty()) {
                 LOGGER.info("Was invoked method to find all cat agreements");
@@ -146,7 +146,7 @@ public class AgreementService {
                 LOGGER.info("Was invoked method to find all cat agreements, but cat agreements were not found");
                 return new ArrayList<>();
             }
-        } else if (petType.equals(Pet.DOG)) {
+        } else if (petType == PetType.DOG) {
             List<DogAgreement> dogAgreements = this.dogAgreementRepository.findAll();
             if (!dogAgreements.isEmpty()) {
                 LOGGER.info("Was invoked method to find all agreements");
@@ -165,9 +165,9 @@ public class AgreementService {
 
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
-    public <T extends Agreement> List<T> findAllAgreementsWithProbationByDate(LocalDate localDate, String petType) {
+    public <T extends Agreement> List<T> findAllAgreementsWithProbationByDate(LocalDate localDate, PetType petType) {
         if (localDate != null) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 List<CatAgreement> catAgreements = this.catAgreementRepository.findAll().stream()
                         .filter(e -> localDate.isBefore(e.getProbationEndData()))
                         .toList();
@@ -180,7 +180,7 @@ public class AgreementService {
                             localDate + ", but cat agreements were not found");
                     return new ArrayList<>();
                 }
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 List<DogAgreement> dogAgreements = this.dogAgreementRepository.findAll().stream()
                         .filter(e -> localDate.isBefore(e.getProbationEndData()))
                         .toList();
@@ -205,13 +205,13 @@ public class AgreementService {
 
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
-    public <T extends Agreement> List<T> findAgreementsWithEndingProbation(String petType) {
-        if (petType.equals(Pet.CAT)) {
+    public <T extends Agreement> List<T> findAgreementsWithEndingProbation(PetType petType) {
+        if (petType == PetType.CAT) {
             LOGGER.info("Was invoked method to find all agreements from Timer");
             return (List<T>) this.catAgreementRepository.findAll().stream()
                     .filter(e -> e.getProbationEndData().minusDays(2).equals(LocalDate.now()))
                     .toList();
-        } else if (petType.equals(Pet.DOG)) {
+        } else if (petType == PetType.DOG) {
             LOGGER.info("Was invoked method to find all agreements from Timer");
             return (List<T>) this.dogAgreementRepository.findAll().stream()
                     .filter(e -> e.getProbationEndData().minusDays(2).equals(LocalDate.now()))
@@ -222,15 +222,15 @@ public class AgreementService {
         }
     }
 
-    public AgreementRecord changeProbationEndData(long id, LocalDate localDate, String petType) {
+    public AgreementRecord changeProbationEndData(long id, LocalDate localDate, PetType petType) {
         if (id > 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 CatAgreement catAgreement = this.catAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 catAgreement.setProbationEndData(localDate);
                 this.catAgreementRepository.save(catAgreement);
                 return this.modelMapper.mapToAgreementRecord(catAgreement);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 DogAgreement dogAgreement = this.dogAgreementRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
                 dogAgreement.setProbationEndData(localDate);

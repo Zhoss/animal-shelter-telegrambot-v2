@@ -11,7 +11,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 
 @Service
 public class CarerService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(CarerService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarerService.class);
+    private static final Pattern CARER_NUMBER_PATTERN = Pattern.compile("^(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$");
     private final DogCarerRepository dogCarerRepository;
     private final CatCarerRepository catCarerRepository;
     private final ModelMapper modelMapper;
@@ -43,10 +44,10 @@ public class CarerService {
      * @see DogCarerRepository
      */
     @Transactional
-    public Carer addCarer(String fullName, int age, String phoneNumber, long chatId, String petType) {
+    public Carer addCarer(String fullName, int age, String phoneNumber, long chatId, PetType petType) {
         if (!fullName.isEmpty() && !fullName.isBlank() &&
                 !phoneNumber.isEmpty() && !phoneNumber.isBlank()) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 CatCarer catCarer = new CatCarer();
                 catCarer.setFullName(fullName);
                 catCarer.setBirthYear(LocalDate.now().getYear() - age);
@@ -55,7 +56,7 @@ public class CarerService {
                 LOGGER.info("Was invoked method for adding cat carer from Telegram bot");
                 this.catCarerRepository.save(catCarer);
                 return catCarer;
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 DogCarer dogCarer = new DogCarer();
                 dogCarer.setFullName(fullName);
                 dogCarer.setBirthYear(LocalDate.now().getYear() - age);
@@ -75,12 +76,12 @@ public class CarerService {
     }
 
     @Transactional
-    public Carer saveCarer(Carer carer, String petType) {
+    public Carer saveCarer(Carer carer, PetType petType) {
         if (carer != null) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Was invoked method for saving cat carer from Telegram bot");
                 return this.catCarerRepository.save((CatCarer) carer);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Was invoked method for saving dog carer from Telegram bot");
                 return this.dogCarerRepository.save((DogCarer) carer);
             } else {
@@ -102,14 +103,14 @@ public class CarerService {
      * @see org.springframework.data.jpa.repository.JpaRepository#findById(Object)
      */
     @Transactional(readOnly = true)
-    public CarerRecord findCarer(long id, String petType) {
+    public CarerRecord findCarer(long id, PetType petType) {
         if (id > 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Was invoked method to find cat carer");
                 CatCarer catCarer = this.catCarerRepository.findById(id).
                         orElseThrow(() -> new CarerNotFoundException("Опекун с id = " + id + " не найден"));
                 return this.modelMapper.mapToCarerRecord(catCarer);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Was invoked method to find dog carer");
                 DogCarer dogCarer = this.dogCarerRepository.findById(id).
                         orElseThrow(() -> new CarerNotFoundException("Опекун с id = " + id + " не найден"));
@@ -133,13 +134,13 @@ public class CarerService {
      * @see CarerRecord
      */
     @Transactional(readOnly = true)
-    public Carer findCarerByChatId(long chatId, String petType) {
+    public Carer findCarerByChatId(long chatId, PetType petType) {
         if (chatId != 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Was invoked method to find cat carer by chat id from Telegram");
                 return this.catCarerRepository.findCatCarerByChatId(chatId)
                         .orElse(null);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Was invoked method to find dog carer by chat id from Telegram");
                 return this.dogCarerRepository.findDogCarerByChatId(chatId)
                         .orElse(null);
@@ -155,14 +156,14 @@ public class CarerService {
     @Transactional
     public CarerRecord editCarer(CarerRecord carerRecord) {
         if (carerRecord != null) {
-            if (carerRecord.getPetType().equals(Pet.CAT)) {
+            if (carerRecord.getPetType() == PetType.CAT) {
                 LOGGER.info("Was invoked method to edit cat carer");
                 CatCarer catCarer = this.catCarerRepository.findById(carerRecord.getId())
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 this.modelMapper.updateCarer(carerRecord, catCarer);
                 this.catCarerRepository.save(catCarer);
                 return this.modelMapper.mapToCarerRecord(catCarer);
-            } else if (carerRecord.getPetType().equals(Pet.DOG)) {
+            } else if (carerRecord.getPetType() == PetType.DOG) {
                 LOGGER.info("Was invoked method to edit dog carer");
                 DogCarer dogCarer = this.dogCarerRepository.findById(carerRecord.getId())
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
@@ -188,12 +189,12 @@ public class CarerService {
      * @see org.springframework.data.jpa.repository.JpaRepository#deleteById(Object)
      */
     @Transactional
-    public void deleteCarer(long id, String petType) {
+    public void deleteCarer(long id, PetType petType) {
         if (id > 0) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Was invoked method to delete cat carer");
                 this.catCarerRepository.deleteById(id);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Was invoked method to delete dog carer");
                 this.dogCarerRepository.deleteById(id);
             } else {
@@ -207,16 +208,15 @@ public class CarerService {
     }
 
     @Transactional(readOnly = true)
-    public CarerRecord findCarerByPhoneNumber(String phoneNumber, String petType) {
-        Pattern pattern = Pattern.compile("^(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$");
-        Matcher matcher = pattern.matcher(phoneNumber);
+    public CarerRecord findCarerByPhoneNumber(String phoneNumber, PetType petType) {
+        Matcher matcher = CARER_NUMBER_PATTERN.matcher(phoneNumber);
         if (matcher.matches()) {
-            if (petType.equals(Pet.CAT)) {
+            if (petType == PetType.CAT) {
                 LOGGER.info("Getting cat carer by his phone number");
                 CatCarer catCarer = this.catCarerRepository.findCatCarerByPhoneNumber(phoneNumber)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 return this.modelMapper.mapToCarerRecord(catCarer);
-            } else if (petType.equals(Pet.DOG)) {
+            } else if (petType == PetType.DOG) {
                 LOGGER.info("Getting dog carer by his phone number");
                 DogCarer dogCarer = this.dogCarerRepository.findDogCarerByPhoneNumber(phoneNumber)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
@@ -232,8 +232,8 @@ public class CarerService {
     }
 
     @Transactional(readOnly = true)
-    public List<CarerRecord> findAllCarers(String petType) {
-        if (petType.equals(Pet.CAT)) {
+    public List<CarerRecord> findAllCarers(PetType petType) {
+        if (petType == PetType.CAT) {
             List<CatCarer> catCarers = this.catCarerRepository.findAll();
             if (!catCarers.isEmpty()) {
                 LOGGER.info("Was invoked method to find all cat carers");
@@ -244,7 +244,7 @@ public class CarerService {
                 LOGGER.info("Was invoked method to find all cat carers, but carers were not found");
                 return new ArrayList<>();
             }
-        } else if (petType.equals(Pet.DOG)) {
+        } else if (petType == PetType.DOG) {
             List<DogCarer> dogCarers = this.dogCarerRepository.findAll();
             if (!dogCarers.isEmpty()) {
                 LOGGER.info("Was invoked method to find all dog carers");

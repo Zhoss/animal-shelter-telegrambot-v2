@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 import java.util.Objects;
 
@@ -18,7 +20,8 @@ public class Client {
     @Column(name = "telegram_chat_id", nullable = false)
     private long telegramChatId;
     @Column(name = "pet_type", nullable = false)
-    private String petType;
+    @Enumerated(EnumType.STRING)
+    private PetType petType;
 
     public Client() {
     }
@@ -39,11 +42,11 @@ public class Client {
         this.telegramChatId = telegramChatId;
     }
 
-    public String getPetType() {
+    public PetType getPetType() {
         return petType;
     }
 
-    public void setPetType(String petType) {
+    public void setPetType(PetType petType) {
         this.petType = petType;
     }
 

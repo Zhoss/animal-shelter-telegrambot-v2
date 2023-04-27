@@ -122,7 +122,7 @@ public class DogDailyReport extends DailyReport {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DogDailyReport that = (DogDailyReport) o;
-        return id == that.id;
+        return Objects.equals(id, that.id);
     }
 
     @Override

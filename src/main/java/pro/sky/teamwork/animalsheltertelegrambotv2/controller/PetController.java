@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.Dog;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.PetRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.PetService;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public class PetController {
                             examples = {
                                     @ExampleObject(
                                             value = "{\"id\": 0,"
-                                                    + "\"petType\": \"кошка/собака\","
+                                                    + "\"petType\": \"CAT/DOG\","
                                                     + "\"name\": \"Кличка\","
                                                     + "\"breed\": \"Порода\","
                                                     + "\"coatColor\": \"Цвет\","
@@ -65,7 +66,7 @@ public class PetController {
             }, tags = "Питомец"
     )
     @PostMapping
-    public ResponseEntity<PetRecord> addDog(@RequestBody PetRecord petRecord) {
+    public ResponseEntity<PetRecord> addPet(@RequestBody PetRecord petRecord) {
         return ResponseEntity.ok(this.petService.addPet(petRecord));
     }
 
@@ -85,8 +86,8 @@ public class PetController {
             tags = "Питомец"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<PetRecord> findDog(@Parameter(description = "Введите ID питомца") @PathVariable long id,
-                                             @RequestParam(defaultValue = "кошка/собака") String petType) {
+    public ResponseEntity<PetRecord> findPet(@Parameter(description = "Введите ID питомца") @PathVariable long id,
+                                             @RequestParam PetType petType) {
         return ResponseEntity.ok(this.petService.findPet(id, petType));
     }
 
@@ -99,7 +100,7 @@ public class PetController {
                             examples = {
                                     @ExampleObject(
                                             value = "{\"id\": 0,"
-                                                    + "\"petType\": \"кошка/собака\","
+                                                    + "\"petType\": \"CAT/DOG\","
                                                     + "\"name\": \"Кличка\","
                                                     + "\"breed\": \"Порода\","
                                                     + "\"coatColor\": \"Цвет\","
@@ -117,8 +118,8 @@ public class PetController {
             }, tags = "Питомец"
     )
     @PutMapping
-    public ResponseEntity<PetRecord> editDog(@RequestBody PetRecord petRecord) {
-        return ResponseEntity.ok(this.petService.editDog(petRecord));
+    public ResponseEntity<PetRecord> editPet(@RequestBody PetRecord petRecord) {
+        return ResponseEntity.ok(this.petService.editPet(petRecord));
     }
 
     @Operation(
@@ -131,9 +132,9 @@ public class PetController {
             tags = "Питомец"
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDog(@Parameter(description = " Введите ID питомца для удаления")
+    public ResponseEntity<?> deletePet(@Parameter(description = " Введите ID питомца для удаления")
                                        @PathVariable long id,
-                                       @RequestParam(defaultValue = "кошка/собака") String petType) {
+                                       @RequestParam PetType petType) {
         this.petService.deletePet(id, petType);
         return ResponseEntity.ok().build();
     }
@@ -143,28 +144,28 @@ public class PetController {
             tags = "Питомец"
     )
     @GetMapping
-    public ResponseEntity<List<PetRecord>> findAllPets(@RequestParam(defaultValue = "кошка/собака") String petType) {
+    public ResponseEntity<List<PetRecord>> findAllPets(@RequestParam PetType petType) {
         return ResponseEntity.ok(this.petService.findAllPets(petType));
     }
 
     @Operation(
-            summary = "Изменение состояния \"На испытательном сроке\"",
+            summary = "Изменение состояния \"Взят из приюта\"",
             tags = "Питомец"
     )
     @PatchMapping("/is-taken/{id}")
     public ResponseEntity<?> changeIsTakenStatus(@PathVariable long id,
-                                                 @RequestParam(defaultValue = "кошка/собака") String petType,
+                                                 @RequestParam PetType petType,
                                                  @RequestParam boolean isTaken) {
         this.petService.changeIsTakenStatus(id, petType, isTaken);
         return ResponseEntity.ok().build();
     }
 
     @Operation(
-            summary = "Изменение состояния \"Взят из приюта\"",
+            summary = "Изменение состояния \"На испытательном сроке\"",
             tags = "Питомец")
     @PatchMapping("/on-probation/{id}")
     public ResponseEntity<?> changeOnProbationStatus(@PathVariable long id,
-                                                     @RequestParam(defaultValue = "кошка/собака") String petType,
+                                                     @RequestParam PetType petType,
                                                      @RequestParam boolean onProbation) {
         this.petService.changeOnProbationStatus(id, petType, onProbation);
         return ResponseEntity.ok().build();

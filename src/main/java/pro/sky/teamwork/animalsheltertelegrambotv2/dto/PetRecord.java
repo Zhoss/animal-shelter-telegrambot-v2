@@ -1,5 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
 /**
  * Клас описывающий поля для приема информации по <b> собаке </b> через Swagger.
  * <br>Параметры:
@@ -13,7 +15,7 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
  */
 public class PetRecord {
     private long id;
-    private String petType;
+    private PetType petType;
     private String name;
     private String breed;
     private String coatColor;
@@ -31,11 +33,11 @@ public class PetRecord {
         this.id = id;
     }
 
-    public String getPetType() {
+    public PetType getPetType() {
         return petType;
     }
 
-    public void setPetType(String petType) {
+    public void setPetType(PetType petType) {
         this.petType = petType;
     }
 

@@ -1,5 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
 /**
  * Клас описывающий поля для приема информации по <b> опекуну </b>, работает в Swagger.
  * <br>Параметры:
@@ -12,7 +14,7 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
  */
 public class CarerRecord {
     private long id;
-    private String petType;
+    private PetType petType;
     private String secondName;
     private String firstName;
     private String patronymic;
@@ -32,11 +34,11 @@ public class CarerRecord {
         this.id = id;
     }
 
-    public String getPetType() {
+    public PetType getPetType() {
         return petType;
     }
 
-    public void setPetType(String petType) {
+    public void setPetType(PetType petType) {
         this.petType = petType;
     }
 

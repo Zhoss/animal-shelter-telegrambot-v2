@@ -34,12 +34,13 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogDailyRepo
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogAgreementRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogCarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogRepository;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Client;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.VolunteerChat;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Client;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.ChatType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
@@ -47,12 +48,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.repository.ClientRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -70,6 +66,12 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
+    private static final Pattern CLIENT_CONTACT_PATTERN = Pattern.compile(
+            "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
+    private static final Pattern PROBATION_PATTERN = Pattern.compile(
+            "^(/\\w+)(/)(\\d+)$"); //паттерн на команду из чата волонтеров с id опекуна
+    private static final Pattern CARER_ID_PATTERN = Pattern.compile(
+            "^(id)(\\s)(\\d+)$"); //паттерн на id опекуна
 
     @Value("${dailyReports.photo.dir.path}")
     private String photosDir;
@@ -155,15 +157,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             update.message().document() != null) {
                         String errorMessage = "Извините, но я могу работать только с текстом или фото";
                         sendPlainText(chatId, errorMessage);
-                    } else if (chatType.equals("group") && update.message() != null && update.callbackQuery() == null) {
+                    } else if (ChatType.GROUP.equals(ChatType.findChatTypeByString(chatType)) && update.message() != null && update.callbackQuery() == null) {
                         sendPlainText(chatId, "Добрый день, уважаемые волонтеры!");
                         selectShelterCommand(chatId, chatType);
                     } else if (update.message().photo() != null) {
                         savePhotoFromCarer(update, chatId);
                     }
-                } else if (message != null && chatType.equals("group")) {
+                } else if (message != null && ChatType.GROUP.equals(ChatType.findChatTypeByString(chatType))) {
                     handleVolunteersCommand(message, chatId);
-                } else if (message != null && chatType.equals("Private")) {
+                } else if (message != null && ChatType.PRIVATE.equals(ChatType.findChatTypeByString(chatType))) {
                     if (message.startsWith("/")) {
                         handleCarerCommand(message,
                                 chatId,
@@ -182,13 +184,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    private void updateVolunteerChat(long newVolunteerChatId, VolunteerChat volunteerChat, long volunteersId) {
-        if (volunteersId == 1) {
-            volunteerChat.setId(1);
+    private void updateVolunteerChat(long newVolunteerChatId, VolunteerChat volunteerChat, PetType petType) {
+        if (petType == PetType.CAT) {
             volunteerChat.setName("Чат волонтеров приюта для кошек " + LocalDate.now());
-        } else if (volunteersId == 2) {
-            volunteerChat.setId(2);
+            volunteerChat.setPetType(PetType.CAT);
+        } else if (petType == PetType.DOG) {
             volunteerChat.setName("Чат волонтеров приюта для собак " + LocalDate.now());
+            volunteerChat.setPetType(PetType.DOG);
         }
         volunteerChat.setTelegramChatId(newVolunteerChatId);
         this.volunteerChatRepository.save(volunteerChat);
@@ -213,29 +215,22 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     com.pengrad.telegrambot.model.File file = getFileResponse.file();
                     String extension = org.springframework.util.StringUtils.getFilenameExtension(file.filePath());
                     String path = "";
-                    if (client.getPetType().equals(Pet.CAT)) {
+                    if (client.getPetType() == PetType.CAT) {
                         path = "/cats/";
-                    } else if (client.getPetType().equals(Pet.DOG)) {
+                    } else if (client.getPetType() == PetType.DOG) {
                         path = "/dogs/";
                     }
                     Path filePath = Path.of(photosDir + path + carer.getFullName(),
                             LocalDate.now() + "." + extension);
 
                     try {
-                        byte[] photos = telegramBot.getFileContent(file);
-                        Files.createDirectories(filePath.getParent());
                         Files.deleteIfExists(filePath);
-                        try (InputStream is = new ByteArrayInputStream(photos);
-                             OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
-                             BufferedInputStream bis = new BufferedInputStream(is, 1024);
-                             BufferedOutputStream bos = new BufferedOutputStream(os, 1024)
-                        ) {
-                            bis.transferTo(bos);
-                        }
+                        Files.createDirectories(filePath.getParent());
+                        Files.write(filePath, telegramBot.getFileContent(file), CREATE_NEW);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if (client.getPetType().equals(Pet.CAT)) {
+                    if (client.getPetType() == PetType.CAT) {
                         CatDailyReport catDailyReport = new CatDailyReport();
                         catDailyReport.setCarer((CatCarer) carer);
                         catDailyReport.setFilePath(filePath.toString());
@@ -243,14 +238,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         catDailyReport.setMediaType("image/" + extension);
                         catDailyReport.setReportDate(LocalDate.now());
                         this.dailyReportService.addDailyReport(catDailyReport, client.getPetType());
-                    } else if (client.getPetType().equals(Pet.DOG)) {
+                    } else if (client.getPetType() == PetType.DOG) {
                         DogDailyReport dogDailyReport = new DogDailyReport();
                         dogDailyReport.setCarer((DogCarer) carer);
                         dogDailyReport.setFilePath(filePath.toString());
                         dogDailyReport.setFileSize(file.fileSize());
                         dogDailyReport.setMediaType("image/" + extension);
                         dogDailyReport.setReportDate(LocalDate.now());
-                    this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
+                        this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
                     }
 
                     String text = """
@@ -302,23 +297,23 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 }
                 case SELECT_CAT_SHELTER_COMMAND -> {
                     Client client = this.clientRepository.findByTelegramChatId(chatId);
-                    client.setPetType(Pet.CAT);
+                    client.setPetType(PetType.CAT);
                     this.clientRepository.save(client);
                     startCommandMenu(chatId);
                 }
                 case SELECT_DOG_SHELTER_COMMAND -> {
                     Client client = this.clientRepository.findByTelegramChatId(chatId);
-                    client.setPetType(Pet.DOG);
+                    client.setPetType(PetType.DOG);
                     this.clientRepository.save(client);
                     startCommandMenu(chatId);
                 }
                 case SHELTER_INFO_COMMAND -> shelterInfoCommandMenu(chatId);
                 case TAKE_A_PET_COMMAND -> {
-                    String petType = this.clientRepository.findByTelegramChatId(chatId).getPetType();
+                    PetType petType = this.clientRepository.findByTelegramChatId(chatId).getPetType();
                     takePetCommandMenu(chatId, petType);
                 }
                 case SEND_REPORT_MENU_COMMAND -> {
-                    String petType = this.clientRepository.findByTelegramChatId(chatId).getPetType();
+                    PetType petType = this.clientRepository.findByTelegramChatId(chatId).getPetType();
                     sendReportCommandMenu(chatId, petType);
                 }
                 case CALL_VOLUNTEER_COMMAND -> {
@@ -326,14 +321,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     sendCallVolunteerCommand(chatId, clientId, clientFirstName, clientLastName, volunteerChatId);
                 }
                 case SHELTER_MAIN_INFO_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Основная информация о приюте для кошек");
                     } else {
                         sendPlainText(chatId, "Основная информация о приюте для собак");
                     }
                 }
                 case SHELTER_WORK_SCHEDULE_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, """
                                 Расписание работы приюта для кошек:
                                 номер телефона:
@@ -354,14 +349,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     }
                 }
                 case SECURITY_CONTATCT_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Контактные данные охраны для оформления пропуска на машину для проезда к приюту для кошек");
                     } else {
                         sendPlainText(chatId, "Контактные данные охраны для оформления пропуска на машину для проезда к приюту для собак");
                     }
                 }
                 case SHELTER_SAFETY_RECOMMENDATIONS_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Общие рекомендации о технике безопасности на территории приюта для кошек");
                     } else {
                         sendPlainText(chatId, "Общие рекомендации о технике безопасности на территории приюта для собак");
@@ -374,42 +369,42 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         """);
                 case BACK_COMMAND -> startCommandMenu(chatId);
                 case INTRODUCTION_TO_PET_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Правила знакомства с кошкой до того, как можно забрать ее из приюта");
                     } else {
                         sendPlainText(chatId, "Правила знакомства с собакой до того, как можно забрать ее из приюта");
                     }
                 }
                 case TAKE_DOCUMENTS_LIST_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список документов, необходимых для того, чтобы взять кошку из приюта");
                     } else {
                         sendPlainText(chatId, "Список документов, необходимых для того, чтобы взять собаку из приюта");
                     }
                 }
                 case TRANSFER_A_PET_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список рекомендаций по транспортировке кошки");
                     } else {
                         sendPlainText(chatId, "Список рекомендаций по транспортировке собаки");
                     }
                 }
                 case ENVIRONMENT_FOR_YOUNG_PET_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список рекомендаций по обустройству дома для котенка");
                     } else {
                         sendPlainText(chatId, "Список рекомендаций по обустройству дома для щенка");
                     }
                 }
                 case ENVIRONMENT_FOR_PET_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список рекомендаций по обустройству дома для взрослой кошки");
                     } else {
                         sendPlainText(chatId, "Список рекомендаций по обустройству дома для взрослой собаки");
                     }
                 }
                 case ENVIRONMENT_FOR_LIMITED_PET_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список рекомендаций по обустройству дома для кошки с ограниченными " +
                                 "возможностями (зрение, передвижение)");
                     } else {
@@ -422,7 +417,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 case CYNOLOGIST_CONTACTS_COMMAND ->
                         sendPlainText(chatId, "Рекомендации по проверенным кинологам для дальнейшего обращения к ним");
                 case USUAL_REFUSALS_COMMAND -> {
-                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
+                    if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
                         sendPlainText(chatId, "Список причин, почему могут отказать и не дать забрать кошку из приюта");
                     } else {
                         sendPlainText(chatId, "Список причин, почему могут отказать и не дать забрать собаку из приюта");
@@ -446,12 +441,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private long selectVolunteerChatId(long chatId) {
         long volunteerChatId;
-        if (this.clientRepository.findByTelegramChatId(chatId).getPetType().equals(Pet.CAT)) {
-            volunteerChatId = this.volunteerChatRepository.findById(1L)
+        if (this.clientRepository.findByTelegramChatId(chatId).getPetType() == PetType.CAT) {
+            volunteerChatId = this.volunteerChatRepository.findByPetType(PetType.CAT)
                     .orElseThrow(() -> new IllegalArgumentException("Чат волонтеров не найден"))
                     .getTelegramChatId();
         } else {
-            volunteerChatId = this.volunteerChatRepository.findById(2L)
+            volunteerChatId = this.volunteerChatRepository.findByPetType(PetType.DOG)
                     .orElseThrow(() -> new IllegalArgumentException("Чат волонтеров не найден"))
                     .getTelegramChatId();
         }
@@ -462,34 +457,30 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод по обработке сообщений из чата волонтеров.
      */
     private void handleVolunteersCommand(String message, long chatId) {
-        Pattern probationPattern = Pattern.compile(
-                "^(/\\w+)(/)(\\d+)$"); //паттерн на команду из чата волонтеров с id опекуна
-        Pattern carerIdPattern = Pattern.compile(
-                "^(id)(\\s)(\\d+)$");
-        Matcher matcherProbation = probationPattern.matcher(message);
-        Matcher matcherCarerId = carerIdPattern.matcher(message);
+        Matcher matcherProbation = PROBATION_PATTERN.matcher(message);
+        Matcher matcherCarerId = CARER_ID_PATTERN.matcher(message);
         if (Command.commandExists(message)) {
             switch (Objects.requireNonNull(Command.findByStringCommand(message))) {
                 case SELECT_CAT_SHELTER_COMMAND -> {
                     sendPlainText(chatId, "Теперь вы волонтеры приюта для кошек");
                     if (!this.volunteerChatRepository.existsByTelegramChatId(chatId)) {
                         VolunteerChat volunteerChat = new VolunteerChat();
-                        updateVolunteerChat(chatId, volunteerChat, 1L);
+                        updateVolunteerChat(chatId, volunteerChat, PetType.CAT);
                     } else {
                         VolunteerChat volunteerChat = this.volunteerChatRepository
                                 .findByTelegramChatId(chatId);
-                        updateVolunteerChat(chatId, volunteerChat, 1L);
+                        updateVolunteerChat(chatId, volunteerChat, PetType.CAT);
                     }
                 }
                 case SELECT_DOG_SHELTER_COMMAND -> {
                     sendPlainText(chatId, "Теперь вы волонтеры приюта для собак");
                     if (!this.volunteerChatRepository.existsByTelegramChatId(chatId)) {
                         VolunteerChat volunteerChat = new VolunteerChat();
-                        updateVolunteerChat(chatId, volunteerChat, 2L);
+                        updateVolunteerChat(chatId, volunteerChat, PetType.DOG);
                     } else {
                         VolunteerChat volunteerChat = this.volunteerChatRepository
                                 .findByTelegramChatId(chatId);
-                        updateVolunteerChat(chatId, volunteerChat, 2L);
+                        updateVolunteerChat(chatId, volunteerChat, PetType.DOG);
                     }
                 }
                 case VOLUNTEER_CONFIRM_COMMAND -> sendPlainText(chatId, "Спасибо за подтверждение заявки");
@@ -505,12 +496,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             String text = "Дорогой усыновитель, мы заметили, что ты заполняешь отчет не так подробно, как необходимо. " +
                     "Пожалуйста, подойди ответственнее к этому занятию. В противном случае волонтеры приюта будут " +
                     "обязаны самолично проверять условия содержания животного";
-            if (volunteerChat.getId() == 1L) {
+            if (volunteerChat.getPetType() == PetType.CAT) {
                 CatCarer catCarer = this.catCarerRepository.findById(carerId)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 sendPlainText(catCarer.getChatId(), text);
                 sendPlainText(chatId, "Опекун кота/кошки" + catCarer.getFullName() + " уведомлен");
-            } else if (volunteerChat.getId() == 2L) {
+            } else if (volunteerChat.getPetType() == PetType.DOG) {
                 DogCarer dogCarer = this.dogCarerRepository.findById(carerId)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 sendPlainText(dogCarer.getChatId(), text);
@@ -525,9 +516,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод по обработке сообщений из чата волонтеров, связанных с решением о продлении испытательного срока.
      */
     private void decideOnProbation(Matcher matcher, long volunteerChatId) {
-        long volunteerId = this.volunteerChatRepository.findByTelegramChatId(volunteerChatId).getId();
+        PetType petType = this.volunteerChatRepository.findByTelegramChatId(volunteerChatId).getPetType();
         long carerId = Long.parseLong(matcher.group(3));
-        if (volunteerId == 1L) {
+        if (petType == PetType.CAT) {
             CatAgreement catAgreement = this.catAgreementRepository.findCatAgreementByCatCarer_Id(carerId)
                     .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
             String command = matcher.group(1);
@@ -566,7 +557,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     }
                 }
             }
-        } else if (volunteerId == 2L) {
+        } else if (petType == PetType.DOG) {
             DogAgreement dogAgreement = this.dogAgreementRepository.findDogAgreementByDogCarer_Id(carerId)
                     .orElseThrow(() -> new IllegalArgumentException("Договор не найден"));
             String command = matcher.group(1);
@@ -613,9 +604,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private void handleTextMessage(String message, long chatId) {
         long volunteerChatId = selectVolunteerChatId(chatId);
-        Pattern clientContactPattern = Pattern.compile(
-                "^(([А-я]+\\s){2}[А-я]+)(\\s)(\\+\\d{1,7}\\(\\d{3}\\)\\d{7})$"); //паттерн на ФИО и телефон клиента для записи
-        Matcher matcherClientContact = clientContactPattern.matcher(message);
+        Matcher matcherClientContact = CLIENT_CONTACT_PATTERN.matcher(message);
         String clientName;
         String clientPhoneNumber;
         Client client = this.clientRepository.findByTelegramChatId(chatId);
@@ -654,11 +643,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("2)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId, client.getPetType());
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now(), client.getPetType());
-            if (client.getPetType().equals(Pet.CAT)) {
+            if (client.getPetType() == PetType.CAT) {
                 CatDailyReport catDailyReport = (CatDailyReport) dailyReport;
                 catDailyReport.setCatDiet(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(catDailyReport, client.getPetType());
-            } else if (client.getPetType().equals(Pet.DOG)) {
+            } else if (client.getPetType() == PetType.DOG) {
                 DogDailyReport dogDailyReport = (DogDailyReport) dailyReport;
                 dogDailyReport.setDogDiet(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
@@ -674,11 +663,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("3)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId, client.getPetType());
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now(), client.getPetType());
-            if (client.getPetType().equals(Pet.CAT)) {
+            if (client.getPetType() == PetType.CAT) {
                 CatDailyReport catDailyReport = (CatDailyReport) dailyReport;
                 catDailyReport.setCatHealth(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(catDailyReport, client.getPetType());
-            } else if (client.getPetType().equals(Pet.DOG)) {
+            } else if (client.getPetType() == PetType.DOG) {
                 DogDailyReport dogDailyReport = (DogDailyReport) dailyReport;
                 dogDailyReport.setDogHealth(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
@@ -694,11 +683,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         } else if (message.startsWith("4)")) {
             Carer carer = this.carerService.findCarerByChatId(chatId, client.getPetType());
             DailyReport dailyReport = this.dailyReportService.findDailyReportByCarerIdAndDate(carer.getId(), LocalDate.now(), client.getPetType());
-            if (client.getPetType().equals(Pet.CAT)) {
+            if (client.getPetType() == PetType.CAT) {
                 CatDailyReport catDailyReport = (CatDailyReport) dailyReport;
                 catDailyReport.setCatBehavior(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(catDailyReport, client.getPetType());
-            } else if (client.getPetType().equals(Pet.DOG)) {
+            } else if (client.getPetType() == PetType.DOG) {
                 DogDailyReport dogDailyReport = (DogDailyReport) dailyReport;
                 dogDailyReport.setDogBehavior(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
@@ -807,10 +796,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      *
      * @param chatId идентификатор чата, в котором выводятся кнопки
      */
-    private void takePetCommandMenu(long chatId, String petType) {
+    private void takePetCommandMenu(long chatId, PetType petType) {
         List<InlineKeyboardButton> buttons = null;
         String text = "";
-        if (petType.equals(Pet.CAT)) {
+        if (petType == PetType.CAT) {
             buttons = new ArrayList<>(List.of(
                     new InlineKeyboardButton("Узнать правила знакомства с кошкой")
                             .callbackData(Command.INTRODUCTION_TO_PET_COMMAND.getCommand()),
@@ -834,7 +823,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             .callbackData(Command.BACK_COMMAND.getCommand())
             ));
             text = "Добрый день! Здесь Вы можете узнать как взять кошку из приюта.";
-        } else if (petType.equals(Pet.DOG)) {
+        } else if (petType == PetType.DOG) {
             buttons = new ArrayList<>(List.of(
                     new InlineKeyboardButton("Узнать правила знакомства с собакой")
                             .callbackData(Command.INTRODUCTION_TO_PET_COMMAND.getCommand()),
@@ -877,7 +866,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      *
      * @param chatId идентификатор чата, в котором выводятся кнопки
      */
-    private void sendReportCommandMenu(long chatId, String petType) {
+    private void sendReportCommandMenu(long chatId, PetType petType) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Прислать отчет")
                         .callbackData(Command.SEND_REPORT_COMMAND.getCommand()),
@@ -890,9 +879,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         buttons.forEach(keyboard::addRow);
 
         String text = "";
-        if (petType.equals(Pet.CAT)) {
+        if (petType == PetType.CAT) {
             text = "Здесь Вы можете узнать как отправить отчёт о кошке.";
-        } else if (petType.equals(Pet.DOG)) {
+        } else if (petType == PetType.DOG) {
             text = "Здесь Вы можете узнать как отправить отчёт о собаке.";
         }
 

@@ -9,6 +9,4 @@ public interface DogCarerRepository extends JpaRepository<DogCarer, Long> {
     Optional<DogCarer> findDogCarerByPhoneNumber(String phoneNumber);
 
     Optional<DogCarer> findDogCarerByChatId(long chatId);
-
-    Optional<DogCarer> findDogCarerByDogId(long dog);
 }

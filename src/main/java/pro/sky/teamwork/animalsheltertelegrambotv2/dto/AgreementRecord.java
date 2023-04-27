@@ -1,10 +1,12 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
 import java.time.LocalDate;
 
 public class AgreementRecord {
     private long id;
-    private String petType;
+    private PetType petType;
     private String number;
     private LocalDate conclusionDate;
     private LocalDate probationEndData;
@@ -21,11 +23,11 @@ public class AgreementRecord {
         this.id = id;
     }
 
-    public String getPetType() {
+    public PetType getPetType() {
         return petType;
     }
 
-    public void setPetType(String petType) {
+    public void setPetType(PetType petType) {
         this.petType = petType;
     }
 

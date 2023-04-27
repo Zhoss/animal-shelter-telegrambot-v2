@@ -14,7 +14,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogAgreement
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogDailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.repository.VolunteerChatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 
@@ -36,23 +36,23 @@ public class Timer {
 
     @Scheduled(cron = "0 0 20 * * ?")
     public void sendNotification() {
-        List<CatAgreement> catAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), Pet.CAT);
-        List<DogAgreement> dogAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), Pet.DOG);
+        List<CatAgreement> catAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), PetType.CAT);
+        List<DogAgreement> dogAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), PetType.DOG);
         catAgreements.forEach(catAgreement -> {
             CatCarer catCarer = catAgreement.getCarer();
             CatDailyReport lastReport = catCarer.getDailyReports().get(catCarer.getDailyReports().size() - 1);
 
-            sendNotification(lastReport.getReportDate(), catCarer.getChatId(), catCarer.getFullName(), 1L);
+            sendNotification(lastReport.getReportDate(), catCarer.getChatId(), catCarer.getFullName(), PetType.CAT);
         });
         dogAgreements.forEach(dogAgreement -> {
             DogCarer dogCarer = dogAgreement.getCarer();
             DogDailyReport lastReport = dogCarer.getDailyReports().get(dogCarer.getDailyReports().size() - 1);
 
-            sendNotification(lastReport.getReportDate(), dogCarer.getChatId(), dogCarer.getFullName(), 2L);
+            sendNotification(lastReport.getReportDate(), dogCarer.getChatId(), dogCarer.getFullName(), PetType.DOG);
         });
     }
 
-    private void sendNotification(LocalDate localDate, long chatId, String fullName, long volunteerChatId) {
+    private void sendNotification(LocalDate localDate, long chatId, String fullName, PetType petType) {
         if (localDate.isBefore(LocalDate.now().minusDays(1))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
@@ -60,7 +60,7 @@ public class Timer {
         if (localDate.isBefore(LocalDate.now().minusDays(2))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
-            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(volunteerChatId)
+            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findByPetType(petType)
                     .orElseThrow(() -> new RuntimeException("Чат волонтеров не найден"))
                     .getTelegramChatId(),
                     "Опекун " + fullName + " не отправлял отчет более двух дней." +
@@ -72,15 +72,15 @@ public class Timer {
 
     @Scheduled(cron = "0 0 10,16 * * ?")
     public void notionForVolunteerThatProbationIsEnded() {
-        List<CatAgreement> catAgreements = this.agreementService.findAgreementsWithEndingProbation(Pet.CAT);
-        List<DogAgreement> dogAgreements = this.agreementService.findAgreementsWithEndingProbation(Pet.DOG);
+        List<CatAgreement> catAgreements = this.agreementService.findAgreementsWithEndingProbation(PetType.CAT);
+        List<DogAgreement> dogAgreements = this.agreementService.findAgreementsWithEndingProbation(PetType.DOG);
         catAgreements.forEach(catAgreement -> {
             CatCarer catCarer = catAgreement.getCarer();
             sendEndProbationNotification(catCarer.getFullName(),
                     catCarer.getPhoneNumber(),
                     catAgreement.getNumber(),
                     catAgreement.getConclusionDate(),
-                    1L,
+                    PetType.CAT,
                     catCarer.getId());
         });
         dogAgreements.forEach(dogAgreement -> {
@@ -89,7 +89,7 @@ public class Timer {
                     dogCarer.getPhoneNumber(),
                     dogAgreement.getNumber(),
                     dogAgreement.getConclusionDate(),
-                    2L,
+                    PetType.DOG,
                     dogCarer.getId());
         });
     }
@@ -98,10 +98,10 @@ public class Timer {
                                               String phoneNumber,
                                               String agreementNumber,
                                               LocalDate agreementConclusionDate,
-                                              long volunteerChatId,
+                                              PetType petType,
                                               long carerId) {
         SendMessage sendMessageForVolunteer = new SendMessage(
-                this.volunteerChatRepository.findById(volunteerChatId)
+                this.volunteerChatRepository.findByPetType(petType)
                         .orElseThrow(() -> new IllegalArgumentException("Чат волонтеров не найден"))
                         .getTelegramChatId(),
                 "У опекуна " + fullName + ", телефон " + phoneNumber +
@@ -128,8 +128,8 @@ public class Timer {
 
     @Scheduled(cron = "0 0 21 * * ?")
     public void sendNotificationForCheckDailyReports() {
-        for (long i = 1; i < 3; i++) {
-            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findById(i)
+        for (PetType petType : PetType.values()) {
+            SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findByPetType(petType)
                     .orElseThrow(() -> new IllegalArgumentException("Чат волонтеров не найден"))
                     .getTelegramChatId(),
                     "Уважаемые волонтеры! Пожалуйста, просмотрите все присланные отчеты за сегодняшнее число. " +

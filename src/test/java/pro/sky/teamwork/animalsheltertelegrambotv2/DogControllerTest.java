@@ -5,6 +5,7 @@ import org.hamcrest.Matchers;
 import org.mockito.ArgumentMatchers;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.PetRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.PetService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.controller.PetController;
 
@@ -26,43 +27,14 @@ public class DogControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private PetService petService;
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-
-    /*@Test
-    public void testGetDog() throws Exception {  // метод GET #1
-        List<DogRecord> dogs = new ArrayList();
-
-        DogRecord dogTest = new DogRecord();
-
-        dogTest.setId(1);
-        dogTest.setName("тузик");
-        dogTest.setBreed("Двортерьер");
-        dogTest.setCoatColor("Черный");
-        dogTest.setAge(15);
-        dogTest.setFeatures("Носится шо больной");
-
-        dogs.add(dogTest);
-
-        when(dogService.findDog(dogTest.getId()))
-                .thenReturn(dogTest);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/dog/{id}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.name", Matchers.equalTo("тузик")))
-                .andExpect(jsonPath("$.breed", Matchers.equalTo("Двортерьер")))
-                .andExpect(jsonPath("$.coatColor", Matchers.equalTo("Черный")))
-                .andExpect(jsonPath("$.age", Matchers.equalTo(15)))
-                .andExpect(jsonPath("$.features", Matchers.equalTo("Носится шо больной")));
-    }*/
     @Test
     public void testPostDog() throws Exception {
 
         PetRecord dogTest = new PetRecord();
         dogTest.setId(1);
-        dogTest.setPetType("собака");
+        dogTest.setPetType(PetType.DOG);
         dogTest.setName("Тузик");
         dogTest.setBreed("Двортерьер");
         dogTest.setCoatColor("Черный");
@@ -94,14 +66,14 @@ public class DogControllerTest {
         PetRecord dogTest = new PetRecord();
 
         dogTest.setId(0);
-        dogTest.setPetType("собака");
+        dogTest.setPetType(PetType.DOG);
         dogTest.setName("Тузик");
         dogTest.setBreed("Двортерьер");
         dogTest.setCoatColor("Черный");
         dogTest.setAge(15);
         dogTest.setFeatures("Носится шо больной");
 
-        when(petService.editDog(ArgumentMatchers.any()))
+        when(petService.editPet(ArgumentMatchers.any()))
                 .thenReturn(dogTest);
 
         String json = mapper.writeValueAsString(dogTest);
@@ -120,48 +92,20 @@ public class DogControllerTest {
                 .andExpect(jsonPath("$.age", Matchers.equalTo(15)))
                 .andExpect(jsonPath("$.features", Matchers.equalTo("Носится шо больной")));
     }
+
     @Test
     void testDeleteDog() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.
-                        delete("/pet/" + 1 + "?petType=собака" ))
+                        delete("/pet/" + 1 + "?petType=DOG" ))
                 .andExpect(status().isOk());
-        verify(petService).deletePet(1L, "собака");
+        verify(petService).deletePet(1L, PetType.DOG);
     }
 
     @Test
     void testGetDog() throws Exception { // метод GET #4 валидный
         mockMvc.perform(
-                        get("/pet/" + 1 + "?petType=собака" ))
+                        get("/pet/" + 1 + "?petType=DOG" ))
                 .andExpect(status().isOk());
-        verify(petService).findPet(1L, "собака");
+        verify(petService).findPet(1L, PetType.DOG);
     }
-
-    /*@Test // метод GET #2
-    void testGetDog2() throws Exception {
-        DogRecord dogTest = new DogRecord();
-        when(dogService.getAllDogs()).thenReturn(List.of(new Dog()));
-
-        mockMvc.perform(
-                        get("/dog"))
-                .andExpect(status().isOk());
-    }*/
-
-   /* @Test // метод GET #3
-    public void testGetDog3() throws Exception {
-        List dogs = new ArrayList<>(Arrays.asList());
-
-        Mockito.when(dogService.getAllDogs()).thenReturn(dogs);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/dog")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(6)))
-                .andExpect(jsonPath("$[1].id", Matchers.equalTo(0)))
-                .andExpect(jsonPath("$[2].name", Matchers.equalTo("Тузик")))
-                .andExpect(jsonPath("$[3].breed", Matchers.equalTo("Двортерьер")))
-                .andExpect(jsonPath("$[4].coatColor", Matchers.equalTo("Черный")))
-                .andExpect(jsonPath("$[5].age", Matchers.equalTo(15)))
-                .andExpect(jsonPath("$[6].features", Matchers.equalTo("Носится шо больной")));
-    }*/
 }

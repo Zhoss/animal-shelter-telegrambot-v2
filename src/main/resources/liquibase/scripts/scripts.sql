@@ -95,6 +95,7 @@ CREATE TABLE volunteer_chats
 (
     id               SERIAL PRIMARY KEY,
     name             VARCHAR(50) NOT NULL,
+    pet_type         TEXT,
     telegram_chat_id BIGINT      NOT NULL
 );
 

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
 
@@ -52,7 +53,7 @@ public class CarerController {
     public ResponseEntity<CarerRecord> findCarer(
             @Parameter(description = "ID Опекуна")
             @PathVariable long id,
-            @RequestParam(defaultValue = "кошка/собака") String petType) {
+            @RequestParam PetType petType) {
         return ResponseEntity.ok(this.carerService.findCarer(id, petType));
     }
 
@@ -65,14 +66,14 @@ public class CarerController {
                             examples = {
                                     @ExampleObject(
                                             value = "{\"id\": 0,"
-                                                    + "\"petType\": \"кошка/собака\","
+                                                    + "\"petType\": \"CAT/DOG\","
                                                     + "\"secondName\": \"Иванов\","
                                                     + "\"firstName\": \"Иван\","
                                                     + "\"patronymic\": \"Иванович\","
                                                     + "\"age\": 30,"
                                                     + "\"phoneNumber\": \"+7(999)1234567\","
                                                     + "\"passportNumber\": \"1234 123456\","
-                                                    + "\"petId\": \"1\""
+                                                    + "\"petId\": 1"
                                                     + "}"
                                     )
                             }
@@ -103,7 +104,7 @@ public class CarerController {
     public ResponseEntity<?> deleteCarer(
             @Parameter(description = "ID Опекуна")
             @PathVariable long id,
-            @RequestParam(defaultValue = "кошка/собака") String petType) {
+            @RequestParam PetType petType) {
         this.carerService.deleteCarer(id, petType);
         return ResponseEntity.ok().build();
     }
@@ -116,7 +117,7 @@ public class CarerController {
     public ResponseEntity<CarerRecord> findCarerByPhoneNumber(
             @Parameter(description = "Номер телефона опекуна", example = "+7(123)1234567")
             @RequestParam String phone,
-            @RequestParam(defaultValue = "кошка/собака") String petType) {
+            @RequestParam PetType petType) {
         return ResponseEntity.ok(this.carerService.findCarerByPhoneNumber(phone, petType));
     }
 
@@ -125,7 +126,7 @@ public class CarerController {
             tags = "Опекун"
     )
     @GetMapping
-    public ResponseEntity<List<CarerRecord>> findAllCarers(@RequestParam(defaultValue = "кошка/собака") String petType) {
+    public ResponseEntity<List<CarerRecord>> findAllCarers(@RequestParam PetType petType) {
         return ResponseEntity.ok(this.carerService.findAllCarers(petType));
     }
 
