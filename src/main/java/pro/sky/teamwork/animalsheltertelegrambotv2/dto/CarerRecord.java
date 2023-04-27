@@ -1,5 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
 import java.util.Objects;
 
 /**
@@ -14,13 +16,14 @@ import java.util.Objects;
  */
 public class CarerRecord {
     private long id;
+    private PetType petType;
     private String secondName;
     private String firstName;
     private String patronymic;
     private int age;
     private String phoneNumber;
     private String passportNumber;
-    private long dogId;
+    private long petId;
 
     public CarerRecord() {
     }
@@ -31,6 +34,14 @@ public class CarerRecord {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public PetType getPetType() {
+        return petType;
+    }
+
+    public void setPetType(PetType petType) {
+        this.petType = petType;
     }
 
     public String getSecondName() {
@@ -81,12 +92,12 @@ public class CarerRecord {
         this.passportNumber = passportNumber;
     }
 
-    public long getDogId() {
-        return dogId;
+    public long getPetId() {
+        return petId;
     }
 
-    public void setDogId(long dogId) {
-        this.dogId = dogId;
+    public void setPetId(long petId) {
+        this.petId = petId;
     }
 
     @Override

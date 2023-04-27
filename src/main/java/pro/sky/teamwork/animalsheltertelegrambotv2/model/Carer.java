@@ -1,41 +1,12 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-
-import java.util.List;
-import java.util.Objects;
-
-@Entity
-@Table(name = "carers")
 public class Carer {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name = "full_name", nullable = false)
     private String fullName;
-    @Column(name = "birth_year", nullable = false)
     private int birthYear;
-    @Column(name = "phone_number", columnDefinition = "bpchar", length = 16, nullable = false)
     private String phoneNumber;
-    @Column(name = "chat_id", nullable = false)
     private long chatId;
-    @Column(name = "passport_number")
     private String passportNumber;
-    @OneToOne
-    @JoinColumn(name = "dog_id", referencedColumnName = "id")
-    private Dog dog;
-    @OneToMany(mappedBy = "carer")
-    @JsonManagedReference
-    private List<DailyReport> dailyReports;
 
     public Carer() {
     }
@@ -98,45 +69,5 @@ public class Carer {
         } else {
             throw new IllegalArgumentException("Требуется указать корректный номер паспорта опекуна");
         }
-    }
-
-    public Dog getDog() {
-        return dog;
-    }
-
-    public void setDog(Dog dog) {
-        this.dog = dog;
-    }
-
-    public List<DailyReport> getDailyReports() {
-        return dailyReports;
-    }
-
-    public void setDailyReports(List<DailyReport> dailyReports) {
-        this.dailyReports = dailyReports;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Carer carer = (Carer) o;
-        return getId() == carer.getId();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
-
-        @Override
-    public String toString() {
-        return "Опекун: " +
-                "id = " + id +
-                ", ФИО = " + fullName +
-                ", год рождения = " + birthYear +
-                ", контактный телефон = " + phoneNumber +
-                ", id чата = " + chatId +
-                ", номер паспорта = " + passportNumber;
     }
 }

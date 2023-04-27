@@ -4,6 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.json.JSONObject;
 import org.mockito.ArgumentMatchers;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dto.PetRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+import pro.sky.teamwork.animalsheltertelegrambotv2.service.PetService;
+import pro.sky.teamwork.animalsheltertelegrambotv2.controller.PetController;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -36,39 +41,39 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = DogController.class)
+@WebMvcTest(controllers = PetController.class)
 public class DogControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private DogService dogService;
-    private static ObjectMapper mapper = new ObjectMapper();
-
+    private PetService petService;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void testPostDog() throws Exception {
 
-        DogRecord dogTest = new DogRecord();
+        PetRecord dogTest = new PetRecord();
         dogTest.setId(1);
+        dogTest.setPetType(PetType.DOG);
         dogTest.setName("Тузик");
         dogTest.setBreed("Двортерьер");
         dogTest.setCoatColor("Черный");
         dogTest.setAge(15);
         dogTest.setFeatures("Носится шо больной");
 
-        when(dogService.addDog(ArgumentMatchers.any()))
+        when(petService.addPet(ArgumentMatchers.any()))
                 .thenReturn(dogTest);
 
         String json = mapper.writeValueAsString(dogTest);
 
         mockMvc.perform(
-                        post("/dog")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .characterEncoding("utf-8")
-                                .content(json)
-                                .accept(MediaType.APPLICATION_JSON))
+                post("/pet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("utf-8")
+                        .content(json).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
+                .andExpect(jsonPath("$.petType", Matchers.equalTo("собака")))
                 .andExpect(jsonPath("$.name", Matchers.equalTo("Тузик")))
                 .andExpect(jsonPath("$.breed", Matchers.equalTo("Двортерьер")))
                 .andExpect(jsonPath("$.coatColor", Matchers.equalTo("Черный")))
@@ -78,27 +83,29 @@ public class DogControllerTest {
 
     @Test
     public void testPutDog() throws Exception {
-        DogRecord dogTest = new DogRecord();
+        PetRecord dogTest = new PetRecord();
 
         dogTest.setId(0);
+        dogTest.setPetType(PetType.DOG);
         dogTest.setName("Тузик");
         dogTest.setBreed("Двортерьер");
         dogTest.setCoatColor("Черный");
         dogTest.setAge(15);
         dogTest.setFeatures("Носится шо больной");
 
-        when(dogService.editDog(ArgumentMatchers.any()))
+        when(petService.editPet(ArgumentMatchers.any()))
                 .thenReturn(dogTest);
 
         String json = mapper.writeValueAsString(dogTest);
 
-        mockMvc.perform(put("/dog")
+        mockMvc.perform(put("/pet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(0)))
+                .andExpect(jsonPath("$.petType", Matchers.equalTo("собака")))
                 .andExpect(jsonPath("$.name", Matchers.equalTo("Тузик")))
                 .andExpect(jsonPath("$.breed", Matchers.equalTo("Двортерьер")))
                 .andExpect(jsonPath("$.coatColor", Matchers.equalTo("Черный")))
@@ -108,15 +115,16 @@ public class DogControllerTest {
 
     @Test
     void testDeleteDog() throws Exception {
-        mockMvc.perform(
-                        delete("/dog/{id}", 1))
+        mockMvc.perform(MockMvcRequestBuilders.
+                        delete("/pet/" + 1 + "?petType=DOG" ))
                 .andExpect(status().isOk());
-        verify(dogService).deleteDog(1L);
+        verify(petService).deletePet(1L, PetType.DOG);
     }
 
     @Test
     void testGetDog() throws Exception {
         mockMvc.perform(
+                        get("/pet/" + 1 + "?petType=DOG" ))
                         get("/dog/{id}", 1))
                 .andExpect(status().isOk());
         verify(dogService).findDog(1L);
@@ -127,6 +135,8 @@ public class DogControllerTest {
         mockMvc.perform(
                         get("/dog"))
                 .andExpect(status().isOk());
+        verify(petService).findPet(1L, PetType.DOG);
+    }
         verify(dogService).findAllDogs();
     }
 
