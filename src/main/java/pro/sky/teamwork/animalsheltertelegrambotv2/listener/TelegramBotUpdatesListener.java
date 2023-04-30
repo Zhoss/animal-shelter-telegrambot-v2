@@ -2,6 +2,7 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.listener;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 
@@ -40,7 +41,6 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.model.DailyReport;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Command;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.VolunteerChat;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Client;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.ChatType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
@@ -130,14 +130,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 long clientId = 0L;
                 String clientFirstName = "";
                 String clientLastName = "";
-                String chatType = "";
+                Chat.Type chatType = null;
                 if (update.message() != null) {
                     message = update.message().text();
                     chatId = update.message().chat().id();
                     clientId = update.message().from().id();
                     clientFirstName = update.message().from().firstName();
                     clientLastName = update.message().from().lastName();
-                    chatType = update.message().chat().type().toString();
+                    chatType = update.message().chat().type();
                 } else if (update.message() == null && update.callbackQuery() != null) {
                     message = update.callbackQuery().data();
                     String callBackQueryId = update.callbackQuery().id();
@@ -145,7 +145,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     clientId = update.callbackQuery().from().id();
                     clientFirstName = update.callbackQuery().from().firstName();
                     clientLastName = update.callbackQuery().from().lastName();
-                    chatType = update.callbackQuery().message().chat().type().toString();
+                    chatType = update.callbackQuery().message().chat().type();
                     AnswerCallbackQuery callbackQuery = new AnswerCallbackQuery(callBackQueryId)
                             .showAlert(false);
                     this.telegramBot.execute(callbackQuery);
@@ -158,15 +158,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             update.message().document() != null) {
                         String errorMessage = "Извините, но я могу работать только с текстом или фото";
                         sendPlainText(chatId, errorMessage);
-                    } else if (ChatType.GROUP.equals(ChatType.findChatTypeByString(chatType)) && update.message() != null && update.callbackQuery() == null) {
+                    } else if (Chat.Type.group == chatType && update.message() != null && update.callbackQuery() == null) {
                         sendPlainText(chatId, "Добрый день, уважаемые волонтеры!");
                         selectShelterCommand(chatId, chatType);
                     } else if (update.message().photo() != null) {
                         savePhotoFromCarer(update, chatId);
                     }
-                } else if (message != null && ChatType.GROUP.equals(ChatType.findChatTypeByString(chatType))) {
+                } else if (message != null && Chat.Type.group == chatType) {
                     handleVolunteersCommand(message, chatId);
-                } else if (message != null && ChatType.PRIVATE.equals(ChatType.findChatTypeByString(chatType))) {
+                } else if (message != null && Chat.Type.Private == chatType) {
                     if (message.startsWith("/")) {
                         handleCarerCommand(message,
                                 chatId,
@@ -285,7 +285,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             популярные вопросы о том, что нужно знать и уметь,
                             чтобы забрать собаку из приюта.
                             """);
-                    selectShelterCommand(chatId, "Private");
+                    selectShelterCommand(chatId, Chat.Type.Private);
                     if (this.clientRepository.existsByTelegramChatId(chatId)) {
                         Client client = this.clientRepository.findByTelegramChatId(chatId);
                         client.setTelegramChatId(chatId);
@@ -501,12 +501,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 CatCarer catCarer = this.catCarerRepository.findById(carerId)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 sendPlainText(catCarer.getChatId(), text);
-                sendPlainText(chatId, "Опекун кота/кошки" + catCarer.getFullName() + " уведомлен");
+                sendPlainText(chatId, "Опекун кота/кошки " + catCarer.getFullName() + " уведомлен");
             } else if (volunteerChat.getPetType() == PetType.DOG) {
                 DogCarer dogCarer = this.dogCarerRepository.findById(carerId)
                         .orElseThrow(() -> new CarerNotFoundException("Опекун не найден"));
                 sendPlainText(dogCarer.getChatId(), text);
-                sendPlainText(chatId, "Опекун собаки" + dogCarer.getFullName() + " уведомлен");
+                sendPlainText(chatId, "Опекун собаки " + dogCarer.getFullName() + " уведомлен");
             }
         } else {
             sendPlainText(chatId, "Неизвестная команда");
@@ -529,13 +529,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         catAgreement.setProbationEndData(catAgreement.getProbationEndData().plusDays(14));
                         this.catAgreementRepository.save(catAgreement);
                         sendPlainText(catAgreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 14 дней.");
-                        sendPlainText(volunteerChatId, "Опекун  " + catAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 14 дней.");
+                        sendPlainText(volunteerChatId, "Опекун " + catAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 14 дней.");
                     }
                     case EXTEND_PROBATION_30_COMMAND -> {
                         catAgreement.setProbationEndData(catAgreement.getProbationEndData().plusDays(30));
                         this.catAgreementRepository.save(catAgreement);
                         sendPlainText(catAgreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 30 дней.");
-                        sendPlainText(volunteerChatId, "Опекун  " + catAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 30 дней.");
+                        sendPlainText(volunteerChatId, "Опекун " + catAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 30 дней.");
                     }
                     case PROBATION_NOT_PASSED_COMMAND -> {
                         catAgreement.setProbationEndData(LocalDate.now());
@@ -545,7 +545,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         this.catRepository.save(cat);
                         sendPlainText(catAgreement.getCarer().getChatId(), "Добрый день! К сожалению, Вы не прошли испытательный срок. " +
                                 "Просим Вас привезти собаку обратно в приют и уточнить всю необходимую информацию");
-                        sendPlainText(volunteerChatId, "Опекун  " + catAgreement.getCarer().getFullName() + " уведомлен о не прохождении испытательного срока.");
+                        sendPlainText(volunteerChatId, "Опекун " + catAgreement.getCarer().getFullName() + " уведомлен о не прохождении испытательного срока.");
                     }
                     case PROBATION_PASSED_COMMAND -> {
                         catAgreement.setProbationEndData(LocalDate.now());
@@ -554,7 +554,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         cat.setOnProbation(false);
                         this.catRepository.save(cat);
                         sendPlainText(catAgreement.getCarer().getChatId(), "Добрый день! Поздравляем, Вы прошли испытательный срок!");
-                        sendPlainText(volunteerChatId, "Опекун  " + catAgreement.getCarer().getFullName() + " уведомлен о прохождении испытательного срока.");
+                        sendPlainText(volunteerChatId, "Опекун " + catAgreement.getCarer().getFullName() + " уведомлен о прохождении испытательного срока.");
                     }
                 }
             }
@@ -568,13 +568,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         dogAgreement.setProbationEndData(dogAgreement.getProbationEndData().plusDays(14));
                         this.dogAgreementRepository.save(dogAgreement);
                         sendPlainText(dogAgreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 14 дней.");
-                        sendPlainText(volunteerChatId, "Опекун  " + dogAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 14 дней.");
+                        sendPlainText(volunteerChatId, "Опекун " + dogAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 14 дней.");
                     }
                     case EXTEND_PROBATION_30_COMMAND -> {
                         dogAgreement.setProbationEndData(dogAgreement.getProbationEndData().plusDays(30));
                         this.dogAgreementRepository.save(dogAgreement);
                         sendPlainText(dogAgreement.getCarer().getChatId(), "Добрый день! Ваш испытательный срок был продлен на 30 дней.");
-                        sendPlainText(volunteerChatId, "Опекун  " + dogAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 30 дней.");
+                        sendPlainText(volunteerChatId, "Опекун " + dogAgreement.getCarer().getFullName() + " уведомлен о продлении испытательного срока на 30 дней.");
                     }
                     case PROBATION_NOT_PASSED_COMMAND -> {
                         dogAgreement.setProbationEndData(LocalDate.now());
@@ -584,7 +584,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         this.dogRepository.save(dog);
                         sendPlainText(dogAgreement.getCarer().getChatId(), "Добрый день! К сожалению, Вы не прошли испытательный срок. " +
                                 "Просим Вас привезти собаку обратно в приют и уточнить всю необходимую информацию");
-                        sendPlainText(volunteerChatId, "Опекун  " + dogAgreement.getCarer().getFullName() + " уведомлен о не прохождении испытательного срока.");
+                        sendPlainText(volunteerChatId, "Опекун " + dogAgreement.getCarer().getFullName() + " уведомлен о не прохождении испытательного срока.");
                     }
                     case PROBATION_PASSED_COMMAND -> {
                         dogAgreement.setProbationEndData(LocalDate.now());
@@ -593,7 +593,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         dog.setOnProbation(false);
                         this.dogRepository.save(dog);
                         sendPlainText(dogAgreement.getCarer().getChatId(), "Добрый день! Поздравляем, Вы прошли испытательный срок!");
-                        sendPlainText(volunteerChatId, "Опекун  " + dogAgreement.getCarer().getFullName() + " уведомлен о прохождении испытательного срока.");
+                        sendPlainText(volunteerChatId, "Опекун " + dogAgreement.getCarer().getFullName() + " уведомлен о прохождении испытательного срока.");
                     }
                 }
             }
@@ -653,7 +653,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 dogDailyReport.setDogDiet(message.substring(2).trim());
                 this.dailyReportService.addDailyReport(dogDailyReport, client.getPetType());
             }
-            this.dailyReportService.addDailyReport(dailyReport, client.getPetType());
             String text = """
                     Спасибо! Информация сохранена.
                     Пожалуйста, пришлите информация об
@@ -702,7 +701,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    private void selectShelterCommand(long chatId, String chatType) {
+    private void selectShelterCommand(long chatId, Chat.Type chatType) {
         List<InlineKeyboardButton> buttons = new ArrayList<>(List.of(
                 new InlineKeyboardButton("Приют для кошек").
                         callbackData(Command.SELECT_CAT_SHELTER_COMMAND.getCommand()),
@@ -713,10 +712,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         buttons.forEach(keyboard::addRow);
 
         String text = "";
-        if (chatType.equals("Private")) {
+        if (chatType == Chat.Type.Private) {
             text = "Пожалуйста, выберите приют для животных. Для получения информации о другом приюте " +
                     "нажмите на кнопку другого приюта или вызовите меню выбора через /start с последующим выбором приюта";
-        } else if (chatType.equals("group")) {
+        } else if (chatType == Chat.Type.group) {
             text = "Пожалуйста, выберите к какому приюту для животных вы относитесь.";
         }
         SendMessage response = new SendMessage(chatId, text);
@@ -899,7 +898,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * @param clientFirstName имя клиента, с которым должен связаться волонтёр
      * @param clientLastName  фамилия клиента, с которым должен связаться волонтёр
      */
-    public void sendCallVolunteerCommand(long chatId,
+    private void sendCallVolunteerCommand(long chatId,
                                          long clientId,
                                          String clientFirstName,
                                          String clientLastName,
@@ -929,7 +928,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * @param chatId идентификатор чата, в который отсылается сообщение
      * @see TelegramBot#execute(BaseRequest)
      */
-    public void sendPlainText(long chatId, String text) {
+    private void sendPlainText(long chatId, String text) {
         telegramBot.execute(new SendMessage(chatId, text));
     }
 }
