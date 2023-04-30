@@ -1,5 +1,7 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.model;
 
+import java.util.Objects;
+
 public class Pet {
     private long id;
     private String name;
@@ -69,5 +71,18 @@ public class Pet {
 
     public void setFeatures(String features) {
         this.features = features;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pet pet = (Pet) o;
+        return getId() == pet.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

@@ -98,7 +98,8 @@ public class AgreementService {
             Agreement agreement = this.modelMapper.mapToAgreementEntity(agreementRecord);
             if (agreementRecord.getPetType() == PetType.CAT) {
                 LOGGER.info("Was invoked method to edit cat agreement");
-                CatAgreement catAgreement = this.catAgreementRepository.save((CatAgreement) agreement);
+                CatAgreement catAgreement = this.catAgreementRepository.
+                        save((CatAgreement) agreement);
                 return modelMapper.mapToAgreementRecord(catAgreement);
             } else if (agreementRecord.getPetType() == PetType.DOG) {
                 LOGGER.info("Was invoked method to edit dog agreement");

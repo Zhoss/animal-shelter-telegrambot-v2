@@ -6,10 +6,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.CatCarer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatCarerRepository;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
+import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogCarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
+//import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,6 +23,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType.*;
 
 @ExtendWith(MockitoExtension.class)
 class CarerServiceTest {
@@ -26,6 +31,7 @@ class CarerServiceTest {
     private final CarerRecord carerRecord1 = new CarerRecord();
     private final CarerRecord carerRecord2 = new CarerRecord();
     private final CarerRecord carerRecord3 = new CarerRecord();
+    private final CarerRecord carerRecord4 = new CarerRecord();
 
     String fullName = "Иван Иванович Ивонов";
     int age = 21;
@@ -36,14 +42,29 @@ class CarerServiceTest {
     private final Carer carer = new Carer();
     private final Carer carer2 = new Carer();
     private final Carer carer3 = new Carer();
+    private final CatCarer catCarer = new CatCarer();
+    private final CatCarer catCarer2 = new CatCarer();
+    private final CatCarer catCarer3 = new CatCarer();
+    private final CatCarer catCarer4 = new CatCarer();
+    private final DogCarer dogCarer = new DogCarer();
+    private final DogCarer dogCarer2 = new DogCarer();
+    private final DogCarer dogCarer3 = new DogCarer();
+    private final DogCarer dogCarer4 = new DogCarer();
 
-    List<Carer> carers = List.of(carer, carer2, carer3);
+    List<CatCarer> catCarers = List.of(catCarer, catCarer2, catCarer3);
+    List<DogCarer> dogCarers = List.of(dogCarer, dogCarer2, dogCarer3);
     List<CarerRecord> carerRecords = List.of(carerRecord1, carerRecord2, carerRecord3);
 
     @Mock
-    CarerRepository carerRepositoryMock;
+    DogCarerRepository dogCarerRepositoryMock;
+
+    @Mock
+    CatCarerRepository catCarerRepositoryMock;
+
     @Mock
     ModelMapper modelMapperMock;
+    @Mock
+    CarerRecord carerRecordMock;
 
 
     @InjectMocks
@@ -57,6 +78,7 @@ class CarerServiceTest {
         carer.setPhoneNumber(phoneNumber);
         carer.setChatId(chatId);
         carer.setId(111);
+//        carer.set
         carer2.setId(222);
         carer3.setId(333);
 
@@ -74,169 +96,292 @@ class CarerServiceTest {
         carerRecord2.setId(carer2.getId());
         carerRecord3.setId(carer3.getId());
 
+        catCarer.setId(11);
+        catCarer2.setId(12);
+        catCarer3.setId(13);
+        catCarer4.setId(0);
+        dogCarer.setId(22);
+        dogCarer2.setId(23);
+        dogCarer3.setId(24);
+        dogCarer4.setId(0);
+
+        catCarer.setChatId(chatId);
+        catCarer.setPhoneNumber(phoneNumber);
+        dogCarer.setChatId(chatId);
+        dogCarer.setPhoneNumber(phoneNumber);
+
+        carerRecord1.setPetType(CAT);
+        carerRecord2.setPetType(DOG);
+        carerRecord4.setPetType(RET);//неверный тип животного для теста
+
     }
 
     @Test
-    void shouldReturnCarerWhenAddCarer() {
+    void shouldReturnCatCarerWhenAddCarer() {
 
-        when(carerRepositoryMock.save(carer)).thenReturn(carer);
-        carer.setId(0);
-
-        assertEquals(carer, carerServiceOut.addCarer(fullName, age, phoneNumber, chatId));
+        when(catCarerRepositoryMock.save(catCarer4)).thenReturn(catCarer4);
+        assertEquals(catCarer4, carerServiceOut.addCarer(fullName, age, phoneNumber, chatId, CAT));
     }
 
     @Test
-    void shouldReturnIllegalArgumentExceptionWhenAddCarer() {
+    void shouldReturnDogCarerWhenAddCarer() {
+
+        when(dogCarerRepositoryMock.save(dogCarer4)).thenReturn(dogCarer4);
+        assertEquals(dogCarer4, carerServiceOut.addCarer(fullName, age, phoneNumber, chatId, DOG));
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenAddCarerWithWrongPetType() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.addCarer("", age, phoneNumber, chatId));
+                () -> carerServiceOut.addCarer(fullName, age, phoneNumber, chatId, RET));
     }
 
     @Test
-    void shouldReturnCarerWhenSaveCarer() {
-
-        when(carerRepositoryMock.save(carer)).thenReturn(carer);
-        assertEquals(carer, carerServiceOut.saveCarer(carer));
-    }
-
-    @Test
-    void shouldReturnIllegalArgumentExceptionWhenSaveCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenAddCarerWithWrongData() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.saveCarer(null));
+                () -> carerServiceOut.addCarer(" ", age, phoneNumber, chatId, CAT));
     }
 
     @Test
-    void shouldReturnCarerRecordWhenFindCarer() {
+    void shouldReturnCarerWhenSaveCarerOfCat() {
 
-        when(carerRepositoryMock.findById(carer.getId())).thenReturn(Optional.of(carer));
-
-        when(modelMapperMock.mapToCarerRecord(carer)).thenReturn(carerRecord1);
-
-        assertEquals(carerRecord1, carerServiceOut.findCarer(carer.getId()));
+        when(catCarerRepositoryMock.save(catCarer)).thenReturn(catCarer);
+        assertEquals(catCarer, carerServiceOut.saveCarer(catCarer, CAT));
     }
 
     @Test
-    void shouldReturnIllegalArgumentExceptionWhenFindCarer() {
+    void shouldReturnCarerWhenSaveCarerOfDog() {
+
+        when(dogCarerRepositoryMock.save(dogCarer)).thenReturn(dogCarer);
+        assertEquals(dogCarer, carerServiceOut.saveCarer(dogCarer, DOG));
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenSaveCarerWithWrongPetType() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.findCarer(-1));
+                () -> carerServiceOut.saveCarer(carer, RET));
+    }
+
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenSaveCarerWithNull() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.saveCarer(null, CAT));
     }
 
     @Test
-    void shouldReturnCarerNotFoundExceptionWhenFindCarerWithWrongId() {
+    void shouldReturnCarerRecordWhenFindCarerWithCat() {
 
-        when(carerRepositoryMock.findById(carer.getId())).thenReturn(Optional.empty());
+        when(catCarerRepositoryMock.findById(catCarer.getId())).thenReturn(Optional.of(catCarer));
+        when(modelMapperMock.mapToCarerRecord(catCarer)).thenReturn(carerRecord1);
 
-        assertThrows(CarerNotFoundException.class,
-                () -> carerServiceOut.findCarer(carer.getId()));
+        assertEquals(carerRecord1, carerServiceOut.findCarer(catCarer.getId(), CAT));
     }
 
     @Test
-    void shouldReturnCarerWhenFindCarerByChatId() {
+    void shouldReturnCarerRecordWhenFindCarerWithDog() {
 
-        when(carerRepositoryMock.findCarerByChatId(carer.getChatId())).thenReturn(Optional.of(carer));
+        when(dogCarerRepositoryMock.findById(dogCarer.getId())).thenReturn(Optional.of(dogCarer));
+        when(modelMapperMock.mapToCarerRecord(dogCarer)).thenReturn(carerRecord1);
 
-        assertEquals(carer, carerServiceOut.findCarerByChatId(carer.getChatId()));
+        assertEquals(carerRecord1, carerServiceOut.findCarer(dogCarer.getId(), DOG));
     }
+
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenFindCarerWithWrongPetType() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.findCarer(dogCarer.getId(), RET));
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenFindCarerWithWrongId() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.findCarer(-1, CAT));
+    }
+
+    @Test
+    void shouldReturnCarerWhenFindCarerByChatIdWithCAt() {
+
+        when(catCarerRepositoryMock.findCatCarerByChatId(catCarer.getChatId()))
+                .thenReturn(Optional.of(catCarer));
+
+        assertEquals(catCarer, carerServiceOut.findCarerByChatId(catCarer.getChatId(), CAT));
+    }
+
+    @Test
+    void shouldReturnCarerWhenFindCarerByChatIdWithDog() {
+
+        when(dogCarerRepositoryMock.findDogCarerByChatId(dogCarer.getChatId()))
+                .thenReturn(Optional.of(dogCarer));
+
+        assertEquals(dogCarer, carerServiceOut.findCarerByChatId(dogCarer.getChatId(), DOG));
+    }
+
+    @Test
+    void shouldReturnNullWhenFindCarerByChatIdWithWrongPetType() {
+
+        assertNull(carerServiceOut.findCarerByChatId(dogCarer.getChatId(), RET));
+    }
+
 
     @Test
     void shouldReturnIllegalArgumentExceptionWhenFindCarerByChatIdWithNullId() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.findCarerByChatId(0));
+                () -> carerServiceOut.findCarerByChatId(0, DOG));
     }
 
-    //    @Disabled
     @Test
     void shouldReturnCarerRecordWhenEditCarer() {
 
-        when(carerRepositoryMock.findById(carerRecord1.getId()))
-                .thenReturn(Optional.of(carer));
+        when(catCarerRepositoryMock.findById(carerRecord1.getId()))
+                .thenReturn(Optional.of(catCarer));
 
-        modelMapperMock.updateCarer(carerRecord1, carer);
-        verify(modelMapperMock).updateCarer(carerRecord1, carer);
+        modelMapperMock.updateCarer(carerRecord1, catCarer);
 
-        when(carerRepositoryMock.save(any(Carer.class))).thenReturn(carer);
+        when(catCarerRepositoryMock.save(catCarer)).thenReturn(catCarer);
 
-        when(modelMapperMock.mapToCarerRecord(carer)).thenReturn(carerRecord1);
+        when(modelMapperMock.mapToCarerRecord(catCarer)).thenReturn(carerRecord1);
 
         assertEquals(carerRecord1, carerServiceOut.editCarer(carerRecord1));
     }
 
     @Test
-    void shouldReturnIllegalArgumentExceptionWhenEditCarer() {
+    void shouldReturnIllegalArgumentExceptionWhenEditCarerWithNullCarerRecord() {
 
         assertThrows(IllegalArgumentException.class,
                 () -> carerServiceOut.editCarer(null));
     }
 
     @Test
-//    @Disabled
-    void shouldInvokeDeleteCarer() {
-
-        carerServiceOut.deleteCarer(carer.getId());
-        verify(carerRepositoryMock).deleteById(carer.getId());
-    }
-
-    @Test
-    void shouldIReturnIllegalArgumentExceptionWhenDeleteCarerWithNegativeId() {
+    void shouldReturnIllegalArgumentExceptionWhenEditCarerWithWrongPetType() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.deleteCarer(-1));
+                () -> carerServiceOut.editCarer(carerRecord4));
     }
 
     @Test
-    void ShouldReturnCarerRecordWhenFindCarerByPhoneNumber() {
+    void shouldInvokeDeleteCarerOfCat() {
 
-        when(carerRepositoryMock.findCarerByPhoneNumber(carer.getPhoneNumber()))
-                .thenReturn(Optional.of(carer));
+        carerServiceOut.deleteCarer(catCarer.getId(), CAT);
+        verify(catCarerRepositoryMock).deleteById(catCarer.getId());
+    }
 
-        when(modelMapperMock.mapToCarerRecord(carer))
+    @Test
+    void shouldInvokeDeleteCarerOfDog() {
+
+        carerServiceOut.deleteCarer(dogCarer.getId(), DOG);
+        verify(dogCarerRepositoryMock).deleteById(dogCarer.getId());
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenDeleteCarerOfWrongPetType() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.deleteCarer(carer.getId(), RET));
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenDeleteCarerWithWrongId() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.deleteCarer(0, CAT));
+    }
+
+    @Test
+    void ShouldReturnCarerRecordWhenFindCarerByPhoneNumberOfCat() {
+
+        when(catCarerRepositoryMock.findCatCarerByPhoneNumber(catCarer.getPhoneNumber()))
+                .thenReturn(Optional.of(catCarer));
+
+        when(modelMapperMock.mapToCarerRecord(catCarer))
                 .thenReturn(carerRecord1);
 
-        assertEquals(carerRecord1, carerServiceOut.findCarerByPhoneNumber(carer.getPhoneNumber()));
+        assertEquals(carerRecord1, carerServiceOut
+                .findCarerByPhoneNumber(catCarer.getPhoneNumber(), CAT));
     }
+
+    @Test
+    void ShouldReturnCarerRecordWhenFindCarerByPhoneNumberOfDog() {
+
+        when(dogCarerRepositoryMock.findDogCarerByPhoneNumber(dogCarer.getPhoneNumber()))
+                .thenReturn(Optional.of(dogCarer));
+
+        when(modelMapperMock.mapToCarerRecord(dogCarer))
+                .thenReturn(carerRecord1);
+
+        assertEquals(carerRecord1, carerServiceOut
+                .findCarerByPhoneNumber(dogCarer.getPhoneNumber(), DOG));
+    }
+
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenFindCarerByPhoneNumberWithWrongPetType() {
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.findCarerByPhoneNumber(dogCarer.getPhoneNumber(), RET));
+    }
+
 
     @Test
     void ShouldReturnIllegalArgumentExceptionWhenFindCarerByPhoneNumberWithWrongPhoneNumber() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> carerServiceOut.findCarerByPhoneNumber("7(123)1234567"));
+                () -> carerServiceOut.findCarerByPhoneNumber("7(123)1234567", DOG));
     }
 
     @Test
-    void ShouldReturnCarerNotFoundExceptionWhenFindCarerByPhoneNumberWithNoSuchPhoneNumber() {
+    void ShouldReturnAllCarerRecordsWhenFindAllCarersOfCat() {
 
-        when(carerRepositoryMock.findCarerByPhoneNumber(any(String.class)))
-                .thenReturn(Optional.empty());
-        assertThrows(CarerNotFoundException.class,
-                () -> carerServiceOut.findCarerByPhoneNumber(carer.getPhoneNumber()));
+        when(catCarerRepositoryMock.findAll()).thenReturn(catCarers);
+
+        when(modelMapperMock.mapToCarerRecord(catCarer)).thenReturn(carerRecord1);
+        when(modelMapperMock.mapToCarerRecord(catCarer2)).thenReturn(carerRecord2);
+        when(modelMapperMock.mapToCarerRecord(catCarer3)).thenReturn(carerRecord3);
+
+        assertIterableEquals(carerRecords, carerServiceOut.findAllCarers(CAT));
     }
 
     @Test
-    void ShouldReturnAllCarerRecordsWhenFindAllCarers() {
+    void ShouldReturnNewArrayListWhenFindAllCarersOfCatIsEmpty() {
 
-        when(carerRepositoryMock.findAll()).thenReturn(carers);
+        List<CatCarer> carers1 = List.of();
 
-        when(modelMapperMock.mapToCarerRecord(carer)).thenReturn(carerRecord1);
-        when(modelMapperMock.mapToCarerRecord(carer2)).thenReturn(carerRecord2);
-        when(modelMapperMock.mapToCarerRecord(carer3)).thenReturn(carerRecord3);
+        when(catCarerRepositoryMock.findAll()).thenReturn(carers1);
 
-        assertIterableEquals(carerRecords, carerServiceOut.findAllCarers());
+        assertEquals(new ArrayList<>(), carerServiceOut.findAllCarers(CAT));
+    }
+   @Test
+    void ShouldReturnAllCarerRecordsWhenFindAllCarersOfDog() {
+
+        when(dogCarerRepositoryMock.findAll()).thenReturn(dogCarers);
+
+        when(modelMapperMock.mapToCarerRecord(dogCarer)).thenReturn(carerRecord1);
+        when(modelMapperMock.mapToCarerRecord(dogCarer2)).thenReturn(carerRecord2);
+        when(modelMapperMock.mapToCarerRecord(dogCarer3)).thenReturn(carerRecord3);
+
+        assertIterableEquals(carerRecords, carerServiceOut.findAllCarers(DOG));
     }
 
     @Test
-    void ShouldReturnArrayListWhenFindAllCarersIsEmpty() {
+    void ShouldReturnNewArrayListWhenFindAllCarersOfDogIsEmpty() {
 
-        List<Carer> carers1 = List.of();
+        List<DogCarer> carers1 = List.of();
 
-        when(carerRepositoryMock.findAll()).thenReturn(carers1);
+        when(dogCarerRepositoryMock.findAll()).thenReturn(carers1);
 
-        assertEquals(new ArrayList<>(), carerServiceOut.findAllCarers());
+        assertEquals(new ArrayList<>(), carerServiceOut.findAllCarers(DOG));
     }
 
-//    @Test
-//    void findCarerByDogId() {
-//    }
+    @Test
+    void shouldReturnIllegalArgumentExceptionWhenFindAllCarersWithWrongPetType() {
+
+        assertThrows(IllegalArgumentException.class,
+                () -> carerServiceOut.findAllCarers(RET));
+    }
 }
