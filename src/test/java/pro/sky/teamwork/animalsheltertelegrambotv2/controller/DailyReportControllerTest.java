@@ -1,29 +1,16 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Chat;
-import com.pengrad.telegrambot.model.File;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.PhotoSize;
-import com.pengrad.telegrambot.request.GetFile;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.GetFileResponse;
-import org.apache.logging.log4j.message.MapMessage;
-import org.apache.logging.log4j.message.Message;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.DailyReportService;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -37,59 +24,112 @@ public class DailyReportControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private DailyReportService dailyReportService;
-    private static ObjectMapper mapper = new ObjectMapper();
 
 
     @Test
-    void testDeleteDailyRepor() throws Exception {
-        mockMvc.perform(
-                        delete("/reports/{id}", 1))
-                .andExpect(status().isOk());
-        verify(dailyReportService).deleteDailyReport(1L);
-    }
+    void testGetFindDailyReportsByCarerId() throws Exception {
 
-    @Test
-    void testGetDailyReportsByDate() throws Exception {
-
+//CAT
         mockMvc.perform(
-                        get("/reports/date?Дата отчета=2023-04-22")
+                        get("/reports/carer?petType=CAT")
+                                .param("Идентификатор опекуна","1")
+                                .param("petType", "CAT")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(dailyReportService).findDailyReportsByDate(LocalDate.of(2023, Month.APRIL, 22));
-    }
+        verify(dailyReportService).findDailyReportsByCarer(1L, PetType.CAT);
 
-    @Test
-    void testGetDailyReportsCarerById() throws Exception {
-
+//DOG
         mockMvc.perform(
-                        get("/reports/carer?Идентификатор опекуна=1")
+                        get("/reports/carer?petType=DOG")
+                                .param("Идентификатор опекуна","1")
+                                .param("petType", "DOG")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(dailyReportService).findDailyReportsByCarer(1L);
+        verify(dailyReportService).findDailyReportsByCarer(1L, PetType.DOG);
     }
 
     @Test
     void testGetFindDailyReportsByCarerAndDate() throws Exception {
 
+//CAT
         mockMvc.perform(
-                        get("/reports/carer-date")
+                        get("/reports/carer-date?petType=CAT")
                                 .param("carerId", "1")
                                 .param("reportDate", "2023-04-22")
+                                .param("petType","CAT")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(dailyReportService).findDailyReportByCarerAndDate(1L, LocalDate.of(2023, Month.APRIL, 22));
+        verify(dailyReportService).findDailyReportByCarerAndDate(1L, LocalDate.of(2023, Month.APRIL, 22),PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        get("/reports/carer-date?petType=DOG")
+                                .param("carerId", "1")
+                                .param("reportDate", "2023-04-22")
+                                .param("petType","DOG")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(dailyReportService).findDailyReportByCarerAndDate(1L, LocalDate.of(2023, Month.APRIL, 22),PetType.DOG);
 
     }
 
+    @Test
+    void testGetDailyReportsByDate() throws Exception {
+
+//CAT
+        mockMvc.perform(
+                        get("/reports/date?petType=CAT")
+                                .param("Дата отчета","2023-04-22")
+                                .param("petType","CAT")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(dailyReportService).findDailyReportsByDate(LocalDate.of(2023, Month.APRIL, 22),PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        get("/reports/date?petType=DOG")
+                                .param("Дата отчета","2023-04-22")
+                                .param("petType","DOG")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(dailyReportService).findDailyReportsByDate(LocalDate.of(2023, Month.APRIL, 22),PetType.DOG);
+    }
+
+    @Test
+    void testDeleteDailyRepor() throws Exception {
+
+//CAT
+        mockMvc.perform(
+                        delete("/reports/{id}",1)
+                                .param("petType", "CAT"))
+                .andExpect(status().isOk());
+        verify(dailyReportService).deleteDailyReport(1L,PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        delete("/reports/{id}",1)
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(dailyReportService).deleteDailyReport(1L,PetType.DOG);
+    }
 }
 
     /*@Test

@@ -1,11 +1,10 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.json.JSONObject;
 import org.mockito.ArgumentMatchers;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.AgreementService;
 
 
@@ -31,21 +30,38 @@ public class AgreementControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private AgreementService agreementService;
-    private static ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void testGetAgreement() throws Exception {
+
+//CAT
         mockMvc.perform(
-                        get("/agreement/{id}", 1))
+                        get("/agreement/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "CAT"))
                 .andExpect(status().isOk());
-        verify(agreementService).findAgreementById(1L);
+        verify(agreementService).findAgreementById(1L,PetType.CAT);
+//DOG
+        mockMvc.perform(
+                        get("/agreement/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(agreementService).findAgreementById(1L,PetType.DOG);
     }
 
     @Test
     void testGetAllAgreements() throws Exception {
-        mockMvc.perform(get("/agreement"))
+
+//CAT
+        mockMvc.perform(get("/agreement?petType=CAT"))
                 .andExpect(status().isOk());
-        verify(agreementService).findAllAgreements();
+        verify(agreementService).findAllAgreements(PetType.CAT);
+
+//DOG
+        mockMvc.perform(get("/agreement?petType=DOG"))
+                .andExpect(status().isOk());
+        verify(agreementService).findAllAgreements(PetType.DOG);
     }
 
     @Test
@@ -113,9 +129,42 @@ public class AgreementControllerTest {
 
     @Test
     void testDeleteAgreement() throws Exception {
+
+//CAT
         mockMvc.perform(
-                        delete("/agreement/{id}", 1))
+                        delete("/agreement/{id}",1)
+                .param("id", "1")
+                .param("petType", "CAT"))
                 .andExpect(status().isOk());
-        verify(agreementService).deleteAgreement(1L);
+        verify(agreementService).deleteAgreement(1L, PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        delete("/agreement/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(agreementService).deleteAgreement(1L, PetType.DOG);
+    }
+    @Test
+    void testPatchChangeProbationEndData() throws Exception {
+
+//CAT
+        mockMvc.perform(
+                        patch("/agreement/{id}",1)
+                .param("id", "1")
+                .param("localDate", "2023-04-22")
+                .param("petType", "CAT"))
+                .andExpect(status().isOk());
+        verify(agreementService).changeProbationEndData(1L,LocalDate.of(2023, Month.APRIL, 22), PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        patch("/agreement/{id}",1)
+                                .param("id", "1")
+                                .param("localDate", "2023-04-22")
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(agreementService).changeProbationEndData(1L,LocalDate.of(2023, Month.APRIL, 22), PetType.DOG);
     }
 }
