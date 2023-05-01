@@ -33,12 +33,14 @@ import java.time.LocalDate;
 
 @Service
 public class ModelMapper {
-    private final DogRepository dogRepository;
-    private final CatRepository catRepository;
-    private final DogCarerRepository dogCarerRepository;
-    private final CatCarerRepository catCarerRepository;
-    private final DogAgreementRepository dogAgreementRepository;
-    private final CatAgreementRepository catAgreementRepository;
+    private DogRepository dogRepository;
+    private  CatRepository catRepository;
+    private  DogCarerRepository dogCarerRepository;
+    private  CatCarerRepository catCarerRepository;
+    private  DogAgreementRepository dogAgreementRepository;
+    private  CatAgreementRepository catAgreementRepository;
+
+
 
     public ModelMapper(DogRepository dogRepository,
                        CatRepository catRepository,
@@ -50,6 +52,9 @@ public class ModelMapper {
         this.catCarerRepository = catCarerRepository;
         this.dogAgreementRepository = dogAgreementRepository;
         this.catAgreementRepository = catAgreementRepository;
+    }
+
+    public ModelMapper() {
     }
 
     /**

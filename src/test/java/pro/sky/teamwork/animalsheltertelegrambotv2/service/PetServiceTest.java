@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.dto.DogRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.Cat;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.Dog;
@@ -15,14 +14,11 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogRepo
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.PetRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType.*;
 
@@ -85,12 +81,8 @@ class PetServiceTest {
         cat3.setId(id3);
         dog1.setTaken(taken1);
         cat1.setTaken(taken1);
-//        pet2.setTaken(taken1);
-//        pet3.setTaken(taken2);
         dog1.setOnProbation(onProbation1);
         cat1.setOnProbation(onProbation1);
-//        pet2.setOnProbation(onProbation2);
-//        pet3.setOnProbation(onProbation2);
 
         petRecord1.setId(pet1.getId());
         petRecord1.setPetType(PetType.CAT);
@@ -113,12 +105,10 @@ class PetServiceTest {
     @Test
     void shouldReturnPetRecordWhenAddPet() {
 
-        when(modelMapperMock.mapToPetEntity(petRecord1)).thenReturn(pet1);
+        when(modelMapperMock.mapToPetEntity(petRecord1)).thenReturn(cat1);
         when(catRepositoryMock.save(cat1)).thenReturn(cat1);
         when(modelMapperMock.mapToPetRecord(cat1)).thenReturn(petRecord1);
 
-//        when(dogRepositoryMock.save(dog1)).thenReturn(dog1);
-//
         Assertions.assertEquals(petRecord1, petServiceOut.addPet(petRecord1));
     }
 
@@ -162,24 +152,6 @@ class PetServiceTest {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> petServiceOut.findPet(-1L, DOG));
     }
-//
-//    @Test
-//    void shouldReturnDogNotFoundExceptionWhenFindDogWithAbsentDog() {
-//
-//        Assertions.assertThrows(DogNotFoundException.class,
-//                () -> petServiceOut.findDog(4));
-//    }
-//
-//    @Test
-//    void shouldReturnDogRecordWhenEditDog() {
-//
-//        when(modelMapperMock.mapToDogEntity(dogRecord1)).thenReturn(dog1);
-//        when(dogRepositoryMock.save(dog1)).thenReturn(dog1);
-//        when(modelMapperMock.mapToDogRecord(dog1)).thenReturn(dogRecord1);
-//
-//        Assertions.assertEquals(dogRecord1, petServiceOut.editDog(dogRecord1));
-//    }
-//
     @Test
     void shouldReturnIllegalArgumentExceptionWhenEditPetWithNullPetRecord() {
 

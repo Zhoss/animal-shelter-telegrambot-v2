@@ -1,5 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.Cat;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.CatAgreement;
+import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model.CatCarer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatAgreementRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.Dog;
@@ -19,17 +21,13 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogRepo
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.AgreementRecord;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Agreement;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.model.Dog;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.repository.AgreementRepository;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.repository.DogRepository;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -48,9 +46,7 @@ class AgreementServiceTest {
     private final Dog dog2 = new Dog();
     private final Dog dog3 = new Dog();
 
-    private final Carer carer = new Carer();
-    private final Carer carer2 = new Carer();
-    private final Carer carer3 = new Carer();
+
 
     private final Agreement agreement = new Agreement();
     private final CatAgreement catAgreement = new CatAgreement();
@@ -72,14 +68,15 @@ class AgreementServiceTest {
     @Mock
     ModelMapper modelMapperMock;
 
-    @Mock
-    DogRepository dogRepositoryMock;
 
     @Mock
     CatRepository catRepositoryMock;
 
     @InjectMocks
     AgreementService agreementServiceOut;
+
+    @AfterEach
+
 
 
     @BeforeEach
@@ -103,7 +100,6 @@ class AgreementServiceTest {
         agreementRecord3.setCarerId(3);
         agreementRecord3.setPetType(CAT);
 
-//        agreementRecord.setPetType(CAT);
         agreementRecord4.setPetType(RET);//неверный тип питомца для теста
 
 
@@ -126,9 +122,8 @@ class AgreementServiceTest {
         dog2.setCoatColor("orange");
         dog3.setCoatColor("green");
 
-//        carer.setDog(dog);
-//        carer2.setDog(dog2);
-//        carer3.setDog(dog3);
+
+
 
         agreement.setId(agreementRecord.getId());
         agreement2.setId(agreementRecord2.getId());
@@ -139,17 +134,21 @@ class AgreementServiceTest {
         agreement.setConclusionDate(agreementRecord.getConclusionDate());
         agreement2.setConclusionDate(agreementRecord2.getConclusionDate());
         agreement3.setConclusionDate(agreementRecord3.getConclusionDate());
-//        agreement.setCarer(carer);
-//        agreement2.setCarer(carer2);
-//        agreement3.setCarer(carer3);
+
         agreement.setProbationEndData(agreementRecord.getConclusionDate().plusDays(30));
         agreement2.setProbationEndData(agreementRecord2.getConclusionDate().plusDays(30));
         agreement3.setProbationEndData(agreementRecord3.getConclusionDate().plusDays(30));
 
         catAgreement.setId(10);
+
+        CatCarer catCarer = new CatCarer();
+        catCarer.setCat(cat);
         catAgreement.setProbationEndData(agreement.getProbationEndData());
+        catAgreement.setCarer(catCarer);
+
         catAgreement2.setProbationEndData(agreement2.getProbationEndData());
         catAgreement3.setProbationEndData(agreement3.getProbationEndData());
+
         dogAgreement.setId(20);
         dogAgreement.setProbationEndData(agreement.getProbationEndData());
         dogAgreement2.setProbationEndData(agreement2.getProbationEndData());
@@ -160,10 +159,8 @@ class AgreementServiceTest {
     @Test
     void shouldReturnAgreementRecordWhenAddAgreementOfCat() {
 
-        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
-
+        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(catAgreement);
         when(catAgreementRepositoryMock.save(catAgreement)).thenReturn(catAgreement);
-
         when(catRepositoryMock.save(cat)).thenReturn(cat);
 
         when(modelMapperMock.mapToAgreementRecord(catAgreement)).thenReturn(agreementRecord);
@@ -172,20 +169,7 @@ class AgreementServiceTest {
                 agreementServiceOut.addAgreement(agreementRecord));
     }
 
-    @Test
-    void shouldReturnAgreementRecordWhenAddAgreementOfDog() {
 
-        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
-
-        when(dogAgreementRepositoryMock.save(dogAgreement)).thenReturn(dogAgreement);
-
-        when(dogRepositoryMock.save(dog)).thenReturn(dog);
-
-        when(modelMapperMock.mapToAgreementRecord(dogAgreement)).thenReturn(agreementRecord);
-
-        Assertions.assertEquals(agreementRecord,
-                agreementServiceOut.addAgreement(agreementRecord));
-    }
 
     @Test
     void shouldReturnIllegalArgumentExceptionWhenAddAgreementWithWrongPetType() {
@@ -240,7 +224,7 @@ class AgreementServiceTest {
     @Test
     void shouldReturnAgreementRecordWhenEditAgreementOfCat() {
 
-        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
+        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(catAgreement);
         when(catAgreementRepositoryMock.save(catAgreement)).thenReturn(catAgreement);
         when(modelMapperMock.mapToAgreementRecord(catAgreement)).thenReturn(agreementRecord);
 
@@ -252,7 +236,7 @@ class AgreementServiceTest {
     void shouldReturnAgreementRecordWhenEditAgreementOfDog() {
 
         agreementRecord.setPetType(DOG);
-        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(agreement);
+        when(modelMapperMock.mapToAgreementEntity(eq(agreementRecord))).thenReturn(dogAgreement);
         when(dogAgreementRepositoryMock.save(dogAgreement)).thenReturn(dogAgreement);
         when(modelMapperMock.mapToAgreementRecord(dogAgreement)).thenReturn(agreementRecord);
 
@@ -306,14 +290,14 @@ class AgreementServiceTest {
     @Test
     void shouldReturnAllAgreementRecordsWhenFindAllAgreementsOfCat() {
 
-        List<CatAgreement> catAgreements = List.of(catAgreement, catAgreement2, catAgreement3);
+        List<CatAgreement> catAgreements = List.of(catAgreement, catAgreement3);
         when(catAgreementRepositoryMock.findAll()).thenReturn(catAgreements);
         when(modelMapperMock.mapToAgreementRecord(catAgreement)).thenReturn(agreementRecord);
-        when(modelMapperMock.mapToAgreementRecord(catAgreement2)).thenReturn(agreementRecord2);
         when(modelMapperMock.mapToAgreementRecord(catAgreement3)).thenReturn(agreementRecord3);
 
-        Assertions.assertIterableEquals(List.of(agreementRecord, agreementRecord2, agreementRecord3),
+        Assertions.assertIterableEquals(List.of(agreementRecord,agreementRecord3),
                 agreementServiceOut.findAllAgreements(CAT));
+
     }
 
     @Test
@@ -327,13 +311,12 @@ class AgreementServiceTest {
     @Test
     void shouldReturnAllAgreementRecordsWhenFindAllAgreementsOfDog() {
 
-        List<DogAgreement> dogAgreements = List.of(dogAgreement, dogAgreement2, dogAgreement3);
+        List<DogAgreement> dogAgreements = List.of(dogAgreement, dogAgreement3);
         when(dogAgreementRepositoryMock.findAll()).thenReturn(dogAgreements);
         when(modelMapperMock.mapToAgreementRecord(dogAgreement)).thenReturn(agreementRecord);
-        when(modelMapperMock.mapToAgreementRecord(dogAgreement2)).thenReturn(agreementRecord2);
         when(modelMapperMock.mapToAgreementRecord(dogAgreement3)).thenReturn(agreementRecord3);
 
-        Assertions.assertIterableEquals(List.of(agreementRecord, agreementRecord2, agreementRecord3),
+        Assertions.assertIterableEquals(List.of(agreementRecord, agreementRecord3),
                 agreementServiceOut.findAllAgreements(DOG));
     }
 

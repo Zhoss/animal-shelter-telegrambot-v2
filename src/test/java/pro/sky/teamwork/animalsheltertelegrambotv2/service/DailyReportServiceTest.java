@@ -61,7 +61,6 @@ class DailyReportServiceTest {
     private final DogDailyReport dogDailyReport1 = new DogDailyReport();
     private final DogDailyReport dogDailyReport2 = new DogDailyReport();
     private final DogDailyReport dogDailyReport3 = new DogDailyReport();
-    private final DailyReport dailyReport1 = new DailyReport();
 
     private final List<DailyReportRecord> dailyReportRecordList = new ArrayList<>();
 
@@ -124,7 +123,6 @@ class DailyReportServiceTest {
         dogDailyReportList.add(dogDailyReport2);
         dogDailyReportList.add(dogDailyReport3);
 
-//        carer1.setDailyReports(dailyReportList);
     }
 
     @Test

@@ -11,9 +11,7 @@ import pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.repository.CatCare
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.model.DogCarer;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dogShelter.repository.DogCarerRepository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
-import pro.sky.teamwork.animalsheltertelegrambotv2.exception.CarerNotFoundException;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
-//import pro.sky.teamwork.animalsheltertelegrambotv2.repository.CarerRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType.*;
 

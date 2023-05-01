@@ -78,4 +78,16 @@ public class AgreementRecord {
     public int hashCode() {
         return Objects.hash(getId());
     }
+
+    @Override
+    public String toString() {
+        return "AgreementRecord{" +
+                "id=" + id +
+                ", petType=" + petType +
+                ", number='" + number + '\'' +
+                ", conclusionDate=" + conclusionDate +
+                ", probationEndData=" + probationEndData +
+                ", carerId=" + carerId +
+                '}';
+    }
 }
