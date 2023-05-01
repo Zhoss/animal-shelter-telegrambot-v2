@@ -46,7 +46,7 @@ class TimerTest {
     void handleCatCarerNotSendDailyReportFor1DaysTest() {
         CatCarer catCarer = new CatCarer();
         CatDailyReport catDailyReport = new CatDailyReport();
-        catDailyReport.setReportDate(LocalDate.parse("2023-04-28"));
+        catDailyReport.setReportDate(LocalDate.now().minusDays(2));
         catCarer.setCatDailyReports(List.of(catDailyReport));
         catCarer.setChatId(12345L);
         catCarer.setFullName("Иванов Иван Иванович");
@@ -78,7 +78,7 @@ class TimerTest {
 
         CatCarer catCarer = new CatCarer();
         CatDailyReport catDailyReport = new CatDailyReport();
-        catDailyReport.setReportDate(LocalDate.parse("2023-04-27"));
+        catDailyReport.setReportDate(LocalDate.now().minusDays(3));
         catCarer.setCatDailyReports(List.of(catDailyReport));
         catCarer.setChatId(12345L);
         catCarer.setFullName("Иванов Иван Иванович");
@@ -122,7 +122,7 @@ class TimerTest {
         CatAgreement catAgreement = new CatAgreement();
         catAgreement.setCarer(catCarer);
         catAgreement.setNumber("K-2023/1");
-        catAgreement.setConclusionDate(LocalDate.parse("2023-04-30"));
+        catAgreement.setConclusionDate(LocalDate.now());
         List<Agreement> catAgreements = List.of(catAgreement);
 
         when(agreementService.findAgreementsWithEndingProbation(eq(PetType.CAT))).thenReturn(catAgreements);
@@ -149,7 +149,7 @@ class TimerTest {
 
         Assertions.assertThat(actual.getParameters().get("chat_id")).isEqualTo(98765L);
         Assertions.assertThat(actual.getParameters().get("text")).isEqualTo("У опекуна Иванов Иван Иванович, телефон +7(111)1234567" +
-                ", договор K-2023/1 от 2023-04-30 испытательный срок заканчивается через 2 дня. " +
+                ", договор K-2023/1 от " + LocalDate.now() + " испытательный срок заканчивается через 2 дня. " +
                 "Прошу принять решение о продлении испытательного срока");
         Assertions.assertThat(actual.getParameters().get("reply_markup")).isEqualTo(keyboard);
     }
@@ -171,7 +171,7 @@ class TimerTest {
         timer.sendNotificationForCheckDailyReports();
 
         ArgumentCaptor<SendMessage> argumentCaptor = ArgumentCaptor.forClass(SendMessage.class);
-        Mockito.verify(telegramBot, times(2)).execute(argumentCaptor.capture());
+        Mockito.verify(telegramBot, times(3)).execute(argumentCaptor.capture());
         SendMessage actual = argumentCaptor.getValue();
 
         Assertions.assertThat(actual.getParameters().get("chat_id")).isEqualTo(98765L);
