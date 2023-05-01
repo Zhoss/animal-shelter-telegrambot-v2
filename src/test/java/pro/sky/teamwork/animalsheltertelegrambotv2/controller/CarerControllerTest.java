@@ -1,7 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.controller;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -12,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pro.sky.teamwork.animalsheltertelegrambotv2.dto.CarerRecord;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.service.CarerService;
 
 
@@ -28,18 +28,29 @@ public class CarerControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private CarerService carerService;
-    private static ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void testGetCarerById() throws Exception {
+    void testGetFindCarer() throws Exception {
+
+//CAT
         mockMvc.perform(
-                        get("/carer/{id}", 1))
+                        get("/carer/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "CAT"))
                 .andExpect(status().isOk());
-        verify(carerService).findCarer(1L);
+        verify(carerService).findCarer(1L, PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        get("/carer/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(carerService).findCarer(1L, PetType.DOG);
     }
 
     @Test
-    public void testPatchCarer() throws Exception {
+    public void testPatchEditCarer() throws Exception {
 
         JSONObject carerObject = new JSONObject();
         carerObject.put("id", 1);
@@ -49,7 +60,6 @@ public class CarerControllerTest {
         carerObject.put("age", 30);
         carerObject.put("phoneNumber", "+79881234567");
         carerObject.put("passportNumber", "1234 123456");
-        carerObject.put("dogId", 1);
 
         CarerRecord carerTest = new CarerRecord();
         carerTest.setId(1);
@@ -59,7 +69,6 @@ public class CarerControllerTest {
         carerTest.setAge(30);
         carerTest.setPhoneNumber("+79881234567");
         carerTest.setPassportNumber("1234 123456");
-        carerTest.setDogId(1);
 
         when(carerService.editCarer(ArgumentMatchers.any())).thenReturn(carerTest);
 
@@ -78,36 +87,70 @@ public class CarerControllerTest {
                 .andExpect(jsonPath("$.patronymic", Matchers.equalTo("Иванович")))
                 .andExpect(jsonPath("$.age", Matchers.equalTo(30)))
                 .andExpect(jsonPath("$.phoneNumber", Matchers.equalTo("+79881234567")))
-                .andExpect(jsonPath("$.passportNumber", Matchers.equalTo("1234 123456")))
-                .andExpect(jsonPath("$.dogId", Matchers.equalTo(1)));
+                .andExpect(jsonPath("$.passportNumber", Matchers.equalTo("1234 123456")));
     }
 
     @Test
     void testDeleteCarer() throws Exception {
 
+//CAT
         mockMvc.perform(
-                        delete("/carer/{id}", 1))
+                        delete("/carer/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "CAT"))
                 .andExpect(status().isOk());
-        verify(carerService).deleteCarer(1L);
+        verify(carerService).deleteCarer(1L, PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        delete("/carer/{id}",1)
+                                .param("id", "1")
+                                .param("petType", "DOG"))
+                .andExpect(status().isOk());
+        verify(carerService).deleteCarer(1L, PetType.DOG);
     }
 
     @Test
-    void testGetCarerByPhoneNumber() throws Exception {
+    void testGetFindCarerByPhoneNumber() throws Exception {
 
-              mockMvc.perform(
-                        get("/carer/phone-number?phoneNumber=+7(123)1234567")
+//CAT
+        mockMvc.perform(
+                        get("/carer/phone-number")
+                                .param("phone","+7(123)1234567")
+                                .param("petType", "CAT")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .characterEncoding("utf-8")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        verify(carerService).findCarerByPhoneNumber("+7(123)1234567");
+        verify(carerService).findCarerByPhoneNumber("+7(123)1234567",PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        get("/carer/phone-number")
+                                .param("phone","+7(123)1234567")
+                                .param("petType", "DOG")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .characterEncoding("utf-8")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+        verify(carerService).findCarerByPhoneNumber("+7(123)1234567",PetType.DOG);
     }
 
     @Test
-    void testGetAllCarer() throws Exception {
+    void testGetFindAllCarers() throws Exception {
+
+//CAT
         mockMvc.perform(
-                        get("/carer"))
+                        get("/carer")
+                                .param("petType","CAT"))
                 .andExpect(status().isOk());
-        verify(carerService).findAllCarers();
+        verify(carerService).findAllCarers(PetType.CAT);
+
+//DOG
+        mockMvc.perform(
+                        get("/carer")
+                                .param("petType","DOG"))
+                .andExpect(status().isOk());
+        verify(carerService).findAllCarers(PetType.DOG);
     }
 }
