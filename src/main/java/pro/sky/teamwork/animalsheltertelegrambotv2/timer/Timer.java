@@ -56,8 +56,7 @@ public class Timer {
         if (localDate.isEqual(LocalDate.now().minusDays(2))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
-        }
-        if (localDate.isEqual(LocalDate.now().minusDays(3))) {
+        } else if (localDate.isEqual(LocalDate.now().minusDays(3))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
             SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findByPetType(petType)

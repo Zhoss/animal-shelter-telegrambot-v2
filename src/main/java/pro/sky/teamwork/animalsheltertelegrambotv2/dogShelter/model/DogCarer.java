@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.FetchType;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.Carer;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class DogCarer extends Carer {
     @OneToOne
     @JoinColumn(name = "dog_id", referencedColumnName = "id")
     private Dog dog;
-    @OneToMany(mappedBy = "dogCarer")
+    @OneToMany(mappedBy = "dogCarer", fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<DogDailyReport> dogDailyReports;
 
