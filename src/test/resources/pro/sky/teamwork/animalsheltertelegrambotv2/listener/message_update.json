@@ -1,0 +1,14 @@
+{
+  "message": {
+    "from": {
+      "id": 12345,
+      "first_name": "Ivan",
+      "last_name": "Ivanov"
+    },
+    "chat": {
+      "id": 12345,
+      "type": "%chat_type%"
+    },
+    "text": "%command%"
+  }
+}

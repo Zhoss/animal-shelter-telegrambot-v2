@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 @Entity
 @Table(name = "volunteer_chats")
@@ -15,6 +17,9 @@ public class VolunteerChat {
     private long id;
     @Column(nullable = false)
     private String name;
+    @Column(name = "pet_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PetType petType;
     @Column(name = "telegram_chat_id", nullable = false)
     private long telegramChatId;
 
@@ -35,6 +40,14 @@ public class VolunteerChat {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public PetType getPetType() {
+        return petType;
+    }
+
+    public void setPetType(PetType petType) {
+        this.petType = petType;
     }
 
     public long getTelegramChatId() {

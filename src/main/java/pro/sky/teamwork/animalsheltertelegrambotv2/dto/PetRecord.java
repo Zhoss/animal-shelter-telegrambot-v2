@@ -1,5 +1,9 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
+import java.util.Objects;
+
 /**
  * Клас описывающий поля для приема информации по <b> собаке </b> через Swagger.
  * <br>Параметры:
@@ -11,16 +15,16 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
  * <br> String features;
  *
  */
-public class DogRecord {
+public class PetRecord {
     private long id;
+    private PetType petType;
     private String name;
     private String breed;
     private String coatColor;
     private int age;
     private String features;
 
-    public DogRecord() {
-
+    public PetRecord() {
     }
 
     public long getId() {
@@ -29,6 +33,14 @@ public class DogRecord {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public PetType getPetType() {
+        return petType;
+    }
+
+    public void setPetType(PetType petType) {
+        this.petType = petType;
     }
 
     public String getName() {
@@ -69,5 +81,18 @@ public class DogRecord {
 
     public void setFeatures(String features) {
         this.features = features;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PetRecord petRecord = (PetRecord) o;
+        return getId() == petRecord.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

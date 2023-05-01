@@ -1,5 +1,10 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import org.springframework.stereotype.Repository;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
+
+import java.util.Objects;
+
 /**
  * Клас описывающий поля для приема информации по <b> опекуну </b>, работает в Swagger.
  * <br>Параметры:
@@ -12,13 +17,14 @@ package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
  */
 public class CarerRecord {
     private long id;
+    private PetType petType;
     private String secondName;
     private String firstName;
     private String patronymic;
     private int age;
     private String phoneNumber;
     private String passportNumber;
-    private long dogId;
+    private long petId;
 
     public CarerRecord() {
     }
@@ -29,6 +35,14 @@ public class CarerRecord {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public PetType getPetType() {
+        return petType;
+    }
+
+    public void setPetType(PetType petType) {
+        this.petType = petType;
     }
 
     public String getSecondName() {
@@ -79,11 +93,24 @@ public class CarerRecord {
         this.passportNumber = passportNumber;
     }
 
-    public long getDogId() {
-        return dogId;
+    public long getPetId() {
+        return petId;
     }
 
-    public void setDogId(long dogId) {
-        this.dogId = dogId;
+    public void setPetId(long petId) {
+        this.petId = petId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CarerRecord that = (CarerRecord) o;
+        return getId() == that.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

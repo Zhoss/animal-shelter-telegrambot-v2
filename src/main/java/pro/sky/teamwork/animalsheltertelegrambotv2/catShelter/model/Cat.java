@@ -1,4 +1,4 @@
-package pro.sky.teamwork.animalsheltertelegrambotv2.model;
+package pro.sky.teamwork.animalsheltertelegrambotv2.catShelter.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -6,12 +6,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import pro.sky.teamwork.animalsheltertelegrambotv2.model.Pet;
 
 import java.util.Objects;
 
 @Entity
-@Table(name = "dogs")
-public class Dog {
+@Table(name = "cats")
+public class Cat extends Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -29,9 +30,8 @@ public class Dog {
     @Column(name = "on_probation", nullable = false)
     private boolean onProbation;
 
-    public Dog() {
+    public Cat() {
     }
-
 
     public long getId() {
         return id;
@@ -49,7 +49,7 @@ public class Dog {
         if (!name.isEmpty() && !name.isBlank()) {
             this.name = name;
         } else {
-            throw new IllegalArgumentException("Требуется указать кличку собаки");
+            throw new IllegalArgumentException("Требуется указать кличку кошки");
         }
     }
 
@@ -61,7 +61,7 @@ public class Dog {
         if (!breed.isEmpty() && !breed.isBlank()) {
             this.breed = breed;
         } else {
-            throw new IllegalArgumentException("Требуется указать породу собаки");
+            throw new IllegalArgumentException("Требуется указать породу кошки");
         }
     }
 
@@ -73,7 +73,7 @@ public class Dog {
         if (!coatColor.isEmpty() && !coatColor.isBlank()) {
             this.coatColor = coatColor;
         } else {
-            throw new IllegalArgumentException("Требуется указать окрас собаки");
+            throw new IllegalArgumentException("Требуется указать окрас кошки");
         }
     }
 
@@ -90,11 +90,7 @@ public class Dog {
     }
 
     public void setFeatures(String features) {
-        if (!features.isEmpty() && !features.isBlank()) {
             this.features = features;
-        } else {
-            throw new IllegalArgumentException("Требуется указать особые приметы собаки");
-        }
     }
 
     public boolean isTaken() {
@@ -117,8 +113,8 @@ public class Dog {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Dog dog = (Dog) o;
-        return getId() == dog.getId();
+        Cat cat = (Cat) o;
+        return getId() == cat.getId();
     }
 
     @Override
@@ -128,7 +124,7 @@ public class Dog {
 
     @Override
     public String toString() {
-        return "Собака: " +
+        return "Кошка: " +
                 "id = " + id +
                 ", кличка = " + name +
                 ", порода = " + breed +
