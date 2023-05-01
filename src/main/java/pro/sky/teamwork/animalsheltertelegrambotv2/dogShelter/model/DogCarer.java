@@ -113,6 +113,10 @@ public class DogCarer extends Carer {
         return dogDailyReports;
     }
 
+    public void setDogDailyReports(List<DogDailyReport> dogDailyReports) {
+        this.dogDailyReports = dogDailyReports;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

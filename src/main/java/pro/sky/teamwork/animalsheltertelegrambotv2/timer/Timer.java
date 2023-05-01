@@ -35,7 +35,7 @@ public class Timer {
     }
 
     @Scheduled(cron = "0 0 20 * * ?")
-    public void sendNotification() {
+    public void sendNotificationAboutNotSendingDailyReport() {
         List<CatAgreement> catAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), PetType.CAT);
         List<DogAgreement> dogAgreements = this.agreementService.findAllAgreementsWithProbationByDate(LocalDate.now(), PetType.DOG);
         catAgreements.forEach(catAgreement -> {
@@ -53,11 +53,11 @@ public class Timer {
     }
 
     private void sendNotification(LocalDate localDate, long chatId, String fullName, PetType petType) {
-        if (localDate.isBefore(LocalDate.now().minusDays(1))) {
+        if (localDate.isEqual(LocalDate.now().minusDays(2))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправили отчет за прошлый день. Прошу прислать отчет!");
         }
-        if (localDate.isBefore(LocalDate.now().minusDays(2))) {
+        if (localDate.isEqual(LocalDate.now().minusDays(3))) {
             sendPlainText(chatId, "Добрый день! Напоминаю, что " +
                     "Вы не отправляли отчет больше двух дней. Прошу прислать отчет!");
             SendMessage sendMessageForVolunteer = new SendMessage(this.volunteerChatRepository.findByPetType(petType)
@@ -71,7 +71,7 @@ public class Timer {
     }
 
     @Scheduled(cron = "0 0 10,16 * * ?")
-    public void notionForVolunteerThatProbationIsEnded() {
+    public void notifyForVolunteerThatProbationIsEnded() {
         List<CatAgreement> catAgreements = this.agreementService.findAgreementsWithEndingProbation(PetType.CAT);
         List<DogAgreement> dogAgreements = this.agreementService.findAgreementsWithEndingProbation(PetType.DOG);
         catAgreements.forEach(catAgreement -> {

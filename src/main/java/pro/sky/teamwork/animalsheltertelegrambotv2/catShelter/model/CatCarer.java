@@ -113,6 +113,10 @@ public class CatCarer extends Carer {
         return catDailyReports;
     }
 
+    public void setCatDailyReports(List<CatDailyReport> catDailyReports) {
+        this.catDailyReports = catDailyReports;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
