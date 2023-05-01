@@ -1,5 +1,6 @@
 package pro.sky.teamwork.animalsheltertelegrambotv2.dto;
 
+import org.springframework.stereotype.Repository;
 import pro.sky.teamwork.animalsheltertelegrambotv2.model.PetType;
 
 import java.util.Objects;
